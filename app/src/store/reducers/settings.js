@@ -308,6 +308,13 @@ const settings = (state = initialState, action) =>
 			return { ...state, audioMuted };
 		}
 
+		case 'SET_EMOTION_ANALYSIS_ACTIVE':
+		{
+			const { emotionAnalysisActive } = action.payload;
+
+			return { ...state, emotionAnalysisActive };
+		}
+
 		case 'SET_VIDEO_MUTED':
 		{
 			const { videoMuted } = action.payload;

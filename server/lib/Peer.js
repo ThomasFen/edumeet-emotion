@@ -60,6 +60,10 @@ class Peer extends EventEmitter
 
 		this._consumers = new Map();
 
+		this._process = undefined;
+		
+		this._remotePorts = [];
+
 		this._handlePeer();
 	}
 
@@ -302,6 +306,21 @@ class Peer extends EventEmitter
 		return this._consumers;
 	}
 
+	get process()
+	{
+		return this._process;
+	}
+
+	set process(process)
+	{
+		this._process = process;
+	}
+
+	get remotePorts()
+	{
+		return this._remotePorts;
+	}
+
 	get localRecordingState()
 	{
 		return this._localRecordingState;
@@ -316,6 +335,11 @@ class Peer extends EventEmitter
 	{
 		this._localRecordingState=recordingState;
 		this.addRecordingStateHistory(recordingState, RECORDING_TYPE_LOCAL);
+	}
+
+	addRemotePort(remotePort)
+	{
+		this._remotePorts.push(remotePort);
 	}
 
 	addRecordingStateHistory(recordingState, recordingType)

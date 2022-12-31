@@ -17,6 +17,8 @@ import Volume from './Volume';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import MicIcon from '@material-ui/icons/Mic';
+import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
+import CancelIcon from '@material-ui/icons/Cancel';
 import MicOffIcon from '@material-ui/icons/MicOff';
 import VideoIcon from '@material-ui/icons/Videocam';
 import VideoOffIcon from '@material-ui/icons/VideocamOff';
@@ -343,6 +345,27 @@ const Me = (props) =>
 
 	let micTip;
 
+	let emotionAnalysisState;
+
+	let emotionAnalysisTip;
+
+	if (settings.emotionAnalysisActive)
+	{
+		emotionAnalysisState = 'active';
+		emotionAnalysisTip = intl.formatMessage({
+			id             : 'emotion.stopAnalysis',
+			defaultMessage : 'Deactivate emotion analysis'
+		});
+	}
+	else
+	{
+		emotionAnalysisState = 'inactive';
+		emotionAnalysisTip = intl.formatMessage({
+			id             : 'emotion.startAnalysis',
+			defaultMessage : 'Activate emotion analysis'
+		});
+	}
+
 	if (!me.canSendMic || !hasAudioPermission)
 	{
 		micState = 'unsupported';
@@ -616,6 +639,42 @@ const Me = (props) =>
 							}}
 						>
 							<React.Fragment>
+								{/* EMOTION ANALYSIS */}
+								<Tooltip
+									title={emotionAnalysisTip}
+									placement={height <= 190 ? 'bottom' : 'left'}
+								>
+									<div>
+										<Fab
+											aria-label={intl.formatMessage({
+												id             : 'emotion.startAnalysis',
+												defaultMessage : 'Activate emotion analysis'
+											})}
+											style={{ ...controls.item.style }}
+											className={classnames('fab')}
+											color={emotionAnalysisState === 'active' ?
+												'secondary'
+												: 'default'
+											}
+
+											size={controls.item.size}
+											onClick={() =>
+											{
+												if (emotionAnalysisState === 'active')
+													roomClient.emotionStopAnalysis();
+												else
+													roomClient.emotionStartAnalysis();
+											}}
+										>
+											{ emotionAnalysisState === 'active' ?
+												<CancelIcon />
+												:
+												<EmojiEmotionsIcon />
+											}
+										</Fab>
+									</div>
+								</Tooltip>
+								{/* /EMOTION ANALYSIS */}
 								{/* MICROPHONE */}
 								<Tooltip
 									title={micTip}

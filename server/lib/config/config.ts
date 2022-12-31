@@ -369,6 +369,25 @@ const configSchema = convict({
 				format  : 'nat',
 				default : 15000000
 			}
+		},
+		// mediasoup plainRtpTransport settings.
+		plainRtpTransport :
+		{
+			listenIp : {
+				doc     : 'The Mediasoup listen IPs. [TransportListenIp](https://mediasoup.org/documentation/v3/mediasoup/api/#TransportListenIp)',
+				format  : Object,
+				default : { ip: '127.0.0.1' }
+			},
+			rtcpMux : {
+				doc     : 'Use RTCP-mux (RTP and RTCP in the same port).',
+				format  : 'Boolean',
+				default : false
+			},
+			comedia : {
+				doc     : ' 	Whether remote IP:port should be auto-detected based on first RTP/RTCP packet received. If enabled, connect() must only be called if SRTP is enabled by providing the remote srtpParameters and nothing else.',
+				format  : 'Boolean',
+				default : false
+			}
 		}
 	},
 	// Prometheus exporter

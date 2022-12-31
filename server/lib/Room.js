@@ -8,7 +8,11 @@ const { SocketTimeoutError, NotFoundInMediasoupError } = require('./helpers/erro
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const userRoles = require('./access/roles');
-
+const FFmpeg = require('./ffmpeg');
+const {
+  getPort,
+  releasePort
+} = require('./port');
 import {
 	BYPASS_ROOM_LOCK,
 	BYPASS_LOBBY
@@ -1857,6 +1861,9 @@ class Room extends EventEmitter
 				break;
 			}
 
+			case 'start-record':
+				this._startRecord(peer);
+
 			default:
 			{
 				logger.error('unknown request.method "%s"', request.method);
@@ -1865,6 +1872,93 @@ class Room extends EventEmitter
 			}
 		}
 	}
+
+	 async _startRecord(peer) {
+		let recordInfo = {plainConsumerIDs: {}};
+	  
+		for (const producer of peer.producers.values()) {
+		  const res = await this._publishProducerRtpStream(peer, producer);
+		  recordInfo[producer.kind] = res.rtpParameters;
+		  recordInfo['plainConsumerIDs'][producer.kind] = res.rtpConsumerId;
+		}
+	  
+		recordInfo.fileName = Date.now().toString();
+	  
+		peer.process = new FFmpeg(recordInfo);
+	  
+		setTimeout(async () => {
+			const plainVideoConsumer = peer.getConsumer(recordInfo['plainConsumerIDs']['video']);
+			const plainAudioConsumer = peer.getConsumer(recordInfo['plainConsumerIDs']['audio']);
+			await plainVideoConsumer.resume();
+			await plainVideoConsumer.requestKeyFrame();
+			await plainAudioConsumer.resume();
+			await plainAudioConsumer.requestKeyFrame();
+		}, 1000);
+	  };
+
+	   async _publishProducerRtpStream(peer, producer) {
+		console.log('publishProducerRtpStream()');
+		const router = this._mediasoupRouters.get(peer.routerId);
+		// Create the mediasoup RTP Transport used to send media to the GStreamer process
+		const rtpTransportConfig = config.mediasoup.plainRtpTransport
+		const rtpTransport = await router.createPlainTransport(rtpTransportConfig);
+	  
+		// Set the receiver RTP ports
+		const remoteRtpPort = await getPort();
+		peer.addRemotePort(remoteRtpPort);
+	  
+		let remoteRtcpPort;
+		// If rtpTransport rtcpMux is false also set the receiver RTCP ports
+		if (!rtpTransportConfig.rtcpMux) {
+		  remoteRtcpPort = await getPort();
+		  peer.addRemotePort(remoteRtcpPort);
+		}
+	  
+	  
+		// Connect the mediasoup RTP transport to the ports used by GStreamer
+		await rtpTransport.connect({
+		  ip: '127.0.0.1',
+		  port: remoteRtpPort,
+		  rtcpPort: remoteRtcpPort
+		});
+	  
+		peer.addTransport(rtpTransport.id, rtpTransport);
+	  
+		const codecs = [];
+		// Codec passed to the RTP Consumer must match the codec in the Mediasoup router rtpCapabilities
+		const routerCodec = router.rtpCapabilities.codecs.find(
+		  codec => codec.kind === producer.kind
+		);
+		codecs.push(routerCodec);
+	  
+		const rtpCapabilities = {
+		  codecs,
+		  rtcpFeedback: []
+		};
+	  
+		// Start the consumer paused
+		// Once the gstreamer process is ready to consume resume and send a keyframe
+		const rtpConsumer = await rtpTransport.consume({
+		  producerId: producer.id,
+		  rtpCapabilities,
+		  paused: true
+		});
+	  
+		peer.addConsumer(rtpConsumer.id, rtpConsumer);
+
+	  
+		return {
+			rtpParameters:
+			 {
+			remoteRtpPort,
+			remoteRtcpPort,
+			localRtcpPort: rtpTransport.rtcpTuple ? rtpTransport.rtcpTuple.localPort : undefined,
+			rtpCapabilities,
+			rtpParameters: rtpConsumer.rtpParameters
+				},
+		   rtpConsumerId: rtpConsumer.id
+		};
+	  };
 
 	/**
 	 * Creates a mediasoup Consumer for the given mediasoup Producer.

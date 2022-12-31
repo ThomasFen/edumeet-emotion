@@ -212,6 +212,12 @@ export const setAudioMuted = (audioMuted) =>
 		payload : { audioMuted }
 	});
 
+export const setEmotionAnalysisActive = (emotionAnalysisActive) =>
+	({
+		type    : 'SET_EMOTION_ANALYSIS_ACTIVE',
+		payload : { emotionAnalysisActive }
+	});
+
 export const setVideoMuted = (videoMuted) =>
 	({
 		type    : 'SET_VIDEO_MUTED',

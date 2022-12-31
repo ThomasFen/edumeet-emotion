@@ -1197,6 +1197,62 @@ export default class RoomClient
 		}
 	}
 
+	async emotionStartAnalysis()
+	{
+		logger.debug('emotionStartAnalysis()');
+
+		try
+		{
+			await this.sendRequest('start-record');
+
+			store.dispatch(
+				settingsActions.setEmotionAnalysisActive(true));
+
+		}
+		catch (error)
+		{
+			logger.error('emotionStartAnalysis() [error:"%o"]', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : intl.formatMessage({
+						id             : 'emotion.startAnalysisError',
+						defaultMessage : 'Unable to start emotion analysis'
+					})
+				}));
+
+		}
+	}
+
+	async emotionStopAnalysis()
+	{
+		logger.debug('emotionStopAnalysis()');
+
+		try
+		{
+			// TODO : send request to server to Stop emotion analysis (similar await like in muteMic() below)
+
+			store.dispatch(
+				settingsActions.setEmotionAnalysisActive(false));
+
+		}
+		catch (error)
+		{
+			logger.error('emotionStopAnalysis() [error:"%o"]', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : intl.formatMessage({
+						id             : 'emotion.stopAnalysisError',
+						defaultMessage : 'Unable to stop emotion analysis'
+					})
+				}));
+
+		}
+	}
+
 	async muteMic()
 	{
 		logger.debug('muteMic()');
