@@ -1,0 +1,44 @@
+listeningPort: 8443
+listeningHost: 127.0.0.1
+
+fileTracker: "wss://tracker.openwebtorrent.com"
+
+tls:
+  cert: ./certs/edumeet-demo-cert.pem
+  key:  ./certs/edumeet-demo-key.pem
+
+# turnAPIURI: "https://host.domain.tld/turn"
+# turnAPIKey: "Your API key"
+
+# backupTurnServers: 
+# - urls: 
+#   - "stun:relay.metered.ca:80"
+#   username: ""
+#   credential: ""
+
+redisOptions:
+  host: "127.0.0.1"                                                                                                                                                                  
+  port: "6379"            
+  password: "_REDIS_PASSWORD_"
+
+prometheus:
+  enabled: false
+  deidentify: true
+  numeric: true
+  listen: host.domain.tld
+   
+mediasoup:
+  webRtcTransport:
+    listenIps:
+    - ip: "127.0.0.1"
+      announcedIp: ""
+  plainRtpTransport:
+    listenIp:
+      ip: "127.0.0.1"
+      announcedIp: ""
+    rtcpMux: true
+    comedia: false
+
+bentoML:
+  enabled: true
+  URI: "http://0.0.0.0:3000/predict_async"
