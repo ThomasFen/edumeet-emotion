@@ -1197,13 +1197,13 @@ export default class RoomClient
 		}
 	}
 
-	async emotionStartAnalysis()
+	async emotionStartAnalysis(peerId)
 	{
-		logger.debug('emotionStartAnalysis()');
+		logger.debug('emotionStartAnalysis()', peerId);
 
 		try
 		{
-			await this.sendRequest('start-record');
+			await this.sendRequest('start-emotion-analysis', { peerId });
 
 			store.dispatch(
 				settingsActions.setEmotionAnalysisActive(true));

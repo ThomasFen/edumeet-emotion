@@ -663,7 +663,7 @@ const Me = (props) =>
 												if (emotionAnalysisState === 'active')
 													roomClient.emotionStopAnalysis();
 												else
-													roomClient.emotionStartAnalysis();
+													roomClient.emotionStartAnalysis(me.id);
 											}}
 										>
 											{ emotionAnalysisState === 'active' ?

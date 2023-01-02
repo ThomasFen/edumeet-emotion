@@ -10,9 +10,10 @@ const FileType = require('file-type');
 const logger = new Logger('Ffmpeg');
 
 module.exports = class FFmpeg {
-    constructor(rtpParameters) {
+    constructor(rtpParameters, peer) {
         this._rtpParameters = rtpParameters;
         this._process = undefined;
+        this._peer = peer;
         this._observer = new EventEmitter();
         this._createProcess();
     }
@@ -34,8 +35,6 @@ module.exports = class FFmpeg {
         }
 
         if (this._process.stdout) {
-            // this._process.stdout.setEncoding('utf-8');
-
             this._process.stdout.on('data', data => {
                 (async (buffer) => {
                     try {
@@ -43,6 +42,7 @@ module.exports = class FFmpeg {
                         const isRawImage = fileType && (fileType.mime === 'image/jpeg' || fileType.mime === 'image/png');
                         if (isRawImage) {
                             logger.info('process::image Piped raw Image. [mime:%o]', fileType.mime);
+                            this._peer.emit('rawImage', { buffer });
                         }
                         else {
                             logger.info('process::data [data:%o]', data);

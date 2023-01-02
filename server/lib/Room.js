@@ -13,6 +13,7 @@ const {
   getPort,
   releasePort
 } = require('./port');
+const FormData = require('form-data');
 import {
 	BYPASS_ROOM_LOCK,
 	BYPASS_LOBBY
@@ -753,6 +754,50 @@ class Room extends EventEmitter
 				peerId  : peer.id,
 				picture : peer.picture
 			}, true);
+		});
+
+		peer.on('rawImage', ({ buffer }) =>
+		{
+			// Ensure the Peer is joined.
+			if (!peer.joined)
+				return;
+			
+			if (config.bentoML.enabled) {
+				const formData = new FormData();
+				const annotations = {
+				  userId: peer.id,
+				  conferenceId: this._roomId,
+				};
+		  
+				formData.append("annotations", JSON.stringify(annotations));
+				formData.append("image", buffer, "user.jpeg");
+				formData.submit(config.bentoML.URI, function (err, res) {
+				  if (err) {
+					logger.error('Sending rawImage to BentoML failed [error:"%o"]', err);
+				  } else {
+					const body = [];
+					res.on("data", (chunk) => body.push(chunk));
+					res.on("end", () => {
+					  try {
+						const resString = Buffer.concat(body).toString();
+						const reply = JSON.parse(resString);
+						if (reply.output.length > 0) {
+						  logger.info('Received BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
+						//   TODO: Send to interested parties
+						//   physicians
+						// 	.to(reply.emotions.userId)
+						// 	.volatile.emit("emotion", JSON.stringify(reply.emotions));
+						}
+						else {
+							logger.info("Received BentoML reply with no results");
+						}
+					  } catch (error) {
+						logger.error("BentoML empty reply", error);
+					  }
+					});
+				  }
+				});
+			}
 		});
 
 		peer.on('gotRole', ({ newRole }) =>
@@ -1861,9 +1906,17 @@ class Room extends EventEmitter
 				break;
 			}
 
-			case 'start-record':
-				this._startRecord(peer);
+			case 'start-emotion-analysis':
+			{
+				const { peerId } = request.data;
 
+				const analyzePeer= this._peers[peerId];
+
+				if (!analyzePeer)
+					throw new Error(`peer with id "${peerId}" not found`);
+
+				this._startEmotionAnalysis(analyzePeer);
+			}
 			default:
 			{
 				logger.error('unknown request.method "%s"', request.method);
@@ -1873,7 +1926,7 @@ class Room extends EventEmitter
 		}
 	}
 
-	 async _startRecord(peer) {
+	 async _startEmotionAnalysis(peer) {
 		let recordInfo = {plainConsumerIDs: {}};
 	  
 		for (const producer of peer.producers.values()) {
@@ -1884,7 +1937,7 @@ class Room extends EventEmitter
 	  
 		recordInfo.fileName = Date.now().toString();
 	  
-		peer.process = new FFmpeg(recordInfo);
+		peer.process = new FFmpeg(recordInfo, peer);
 	  
 		setTimeout(async () => {
 			const plainVideoConsumer = peer.getConsumer(recordInfo['plainConsumerIDs']['video']);

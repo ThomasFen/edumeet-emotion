@@ -252,6 +252,21 @@ const configSchema = convict({
 		format  : 'nat',
 		default : 3
 	},
+	// BentoML settings
+	bentoML : 
+	{
+		enabled : {
+			doc     : 'Whether to enable sending images to BentoML for emotion analysis .',
+			format  : 'Boolean',
+			default : false
+		},
+		URI :
+		{
+			doc     : 'BentoML or Yatai URL.',
+			format  : String,
+			default : ''
+		}
+	},
 	// Mediasoup settings
 	mediasoup :
 	{
