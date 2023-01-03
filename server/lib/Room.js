@@ -786,11 +786,9 @@ class Room extends EventEmitter
 						const resString = Buffer.concat(body).toString();
 						const reply = JSON.parse(resString);
 						if (reply.output.length > 0) {
-						  logger.debug('Received BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
-						//   TODO: Send to interested parties
-						//   physicians
-						// 	.to(reply.emotions.userId)
-						// 	.volatile.emit("emotion", JSON.stringify(reply.emotions));
+							logger.debug('Received BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
+							// send emotion to all subscribers
+							socketio.getio().to(reply.emotions.userId).volatile.emit('emotion', JSON.stringify(reply.emotions));
 						}
 						else {
 							logger.debug("Received BentoML reply with no results");
@@ -2359,7 +2357,7 @@ class Room extends EventEmitter
 		}
 	}
 
-	_notification(socket, method, data = {}, broadcast = false, includeSender = false, isEmotionResult = false)
+	_notification(socket, method, data = {}, broadcast = false, includeSender = false)
 	{
 		if (broadcast)
 		{
@@ -2369,10 +2367,6 @@ class Room extends EventEmitter
 
 			if (includeSender)
 				socket.emit('notification', { method, data });
-		}
-		else if (isEmotionResult)
-		{
-			//  physicians.to(reply.emotions.userId).volatile.emit("emotion", JSON.stringify(reply.emotions));
 		}
 		else
 		{
