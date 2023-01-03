@@ -169,6 +169,7 @@ const Me = (props) =>
 		hasAudioPermission,
 		hasVideoPermission,
 		hasScreenPermission,
+		hasEmotionPermission,
 		transports,
 		noiseVolume,
 		classes,
@@ -349,7 +350,15 @@ const Me = (props) =>
 
 	let emotionAnalysisTip;
 
-	if (settings.emotionAnalysisActive)
+	if (!hasEmotionPermission)
+	{
+		emotionAnalysisState = 'unsupported';
+		emotionAnalysisTip = intl.formatMessage({
+			id             : 'device.emotionUnsupported',
+			defaultMessage : 'You have no permission to analyze emotions'
+		});
+	}
+	else if (settings.emotionAnalysisActive)
 	{
 		emotionAnalysisState = 'active';
 		emotionAnalysisTip = intl.formatMessage({
@@ -651,6 +660,7 @@ const Me = (props) =>
 												defaultMessage : 'Activate emotion analysis'
 											})}
 											style={{ ...controls.item.style }}
+											disabled={!hasEmotionPermission}
 											className={classnames('fab')}
 											color={emotionAnalysisState === 'active' ?
 												'secondary'
@@ -661,7 +671,7 @@ const Me = (props) =>
 											onClick={() =>
 											{
 												if (emotionAnalysisState === 'active')
-													roomClient.emotionStopAnalysis();
+													roomClient.emotionStopAnalysis(me.id);
 												else
 													roomClient.emotionStartAnalysis(me.id);
 											}}
@@ -1083,26 +1093,27 @@ const Me = (props) =>
 
 Me.propTypes =
 {
-	roomClient          : PropTypes.any.isRequired,
-	advancedMode        : PropTypes.bool,
-	me                  : appPropTypes.Me.isRequired,
-	settings            : PropTypes.object,
-	activeSpeaker       : PropTypes.bool,
-	micProducer         : appPropTypes.Producer,
-	webcamProducer      : appPropTypes.Producer,
-	screenProducer      : appPropTypes.Producer,
-	extraVideoProducers : PropTypes.arrayOf(appPropTypes.Producer),
-	spacing             : PropTypes.number,
-	style               : PropTypes.object,
-	hasAudioPermission  : PropTypes.bool.isRequired,
-	hasVideoPermission  : PropTypes.bool.isRequired,
-	hasScreenPermission : PropTypes.bool.isRequired,
-	noiseVolume         : PropTypes.number,
-	classes             : PropTypes.object.isRequired,
-	theme               : PropTypes.object.isRequired,
-	transports          : PropTypes.object.isRequired,
-	localRecordingState : PropTypes.string,
-	recordingConsents   : PropTypes.array
+	roomClient           : PropTypes.any.isRequired,
+	advancedMode         : PropTypes.bool,
+	me                   : appPropTypes.Me.isRequired,
+	settings             : PropTypes.object,
+	activeSpeaker        : PropTypes.bool,
+	micProducer          : appPropTypes.Producer,
+	webcamProducer       : appPropTypes.Producer,
+	screenProducer       : appPropTypes.Producer,
+	extraVideoProducers  : PropTypes.arrayOf(appPropTypes.Producer),
+	spacing              : PropTypes.number,
+	style                : PropTypes.object,
+	hasAudioPermission   : PropTypes.bool.isRequired,
+	hasVideoPermission   : PropTypes.bool.isRequired,
+	hasScreenPermission  : PropTypes.bool.isRequired,
+	hasEmotionPermission : PropTypes.bool.isRequired,
+	noiseVolume          : PropTypes.number,
+	classes              : PropTypes.object.isRequired,
+	theme                : PropTypes.object.isRequired,
+	transports           : PropTypes.object.isRequired,
+	localRecordingState  : PropTypes.string,
+	recordingConsents    : PropTypes.array
 };
 
 const makeMapStateToProps = () =>
@@ -1113,6 +1124,8 @@ const makeMapStateToProps = () =>
 		makePermissionSelector(permissions.SHARE_VIDEO);
 	const canShareScreen =
 		makePermissionSelector(permissions.SHARE_SCREEN);
+	const canAnalyzeEmotions =
+		makePermissionSelector(permissions.EMOTION_ANALYSIS);
 
 	const mapStateToProps = (state) =>
 	{
@@ -1129,17 +1142,18 @@ const makeMapStateToProps = () =>
 		else { noise = 10; }
 
 		return {
-			me                  : state.me,
+			me                   : state.me,
 			...meProducersSelector(state),
-			settings            : state.settings,
-			activeSpeaker       : state.me.id === state.room.activeSpeakerId,
-			hasAudioPermission  : canShareAudio(state),
-			hasVideoPermission  : canShareVideo(state),
-			hasScreenPermission : canShareScreen(state),
-			noiseVolume         : noise,
-			transports          : state.transports,
-			localRecordingState : state.recorder.localRecordingState.status,
-			recordingConsents   : recordingConsentsPeersSelector(state)
+			settings             : state.settings,
+			activeSpeaker        : state.me.id === state.room.activeSpeakerId,
+			hasAudioPermission   : canShareAudio(state),
+			hasVideoPermission   : canShareVideo(state),
+			hasScreenPermission  : canShareScreen(state),
+			hasEmotionPermission : canAnalyzeEmotions(state),
+			noiseVolume          : noise,
+			transports           : state.transports,
+			localRecordingState  : state.recorder.localRecordingState.status,
+			recordingConsents    : recordingConsentsPeersSelector(state)
 		};
 	};
 

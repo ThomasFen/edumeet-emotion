@@ -7,6 +7,7 @@
     "device.audioUnsupported": "Audio unsupported",
     "emotion.startAnalysis": "Start emotion analysis",
     "emotion.stopAnalysis": "Stop emotion analysis",
+    "emotion.emotionUnsupported": "You have no permission to analyze emotions",
     "emotion.startAnalysisError": "Unable to start emotion analysis",
     "emotion.stopAnalysisError": "Unable to stop emotion analysis",
     "device.muteAudio": "Mute audio",

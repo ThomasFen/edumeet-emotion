@@ -1225,13 +1225,13 @@ export default class RoomClient
 		}
 	}
 
-	async emotionStopAnalysis()
+	async emotionStopAnalysis(peerId)
 	{
-		logger.debug('emotionStopAnalysis()');
+		logger.debug('emotionStopAnalysis()', peerId);
 
 		try
 		{
-			// TODO : send request to server to Stop emotion analysis (similar await like in muteMic() below)
+			await this.sendRequest('stop-emotion-analysis', { peerId });
 
 			store.dispatch(
 				settingsActions.setEmotionAnalysisActive(false));

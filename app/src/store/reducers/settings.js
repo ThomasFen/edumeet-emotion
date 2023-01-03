@@ -41,7 +41,8 @@ const initialState =
 	opusFec                   : config.opusFec,
 	opusPtime                 : config.opusPtime,
 	opusMaxPlaybackRate       : config.opusMaxPlaybackRate,
-	enableOpusDetails         : false
+	enableOpusDetails         : false,
+	emotionAnalysisActive     : false
 };
 
 const settings = (state = initialState, action) =>

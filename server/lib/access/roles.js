@@ -5,7 +5,8 @@ module.exports = {
 	// with a level up to and including their own highest role.
 	// Example: A MODERATOR can give other peers PRESENTER and MODERATOR
 	// roles (all peers always have NORMAL)
-	ADMIN         : { id: 2529, label: 'admin', level: 50, promotable: true },
+	ADMIN         : { id: 2529, label: 'admin', level: 60, promotable: true },
+	PHYSICIAN     : { id: 8227, label: 'physician', level: 50, promotable: true },
 	MODERATOR     : { id: 5337, label: 'moderator', level: 40, promotable: true },
 	PRESENTER     : { id: 9583, label: 'presenter', level: 30, promotable: true },
 	AUTHENTICATED : { id: 5714, label: 'authenticated', level: 20, promotable: false },

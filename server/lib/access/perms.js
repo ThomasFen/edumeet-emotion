@@ -24,5 +24,7 @@ module.exports = {
 	// The role(s) have permission to moderate room (e.g. kick user)
 	MODERATE_ROOM     : 'MODERATE_ROOM',
 	// The role(s) have permission to local record room
-	LOCAL_RECORD_ROOM : 'LOCAL_RECORD_ROOM'
+	LOCAL_RECORD_ROOM : 'LOCAL_RECORD_ROOM',
+	// The role(s) have permission to analyze emotions
+	EMOTION_ANALYSIS  : 'EMOTION_ANALYSIS'
 };

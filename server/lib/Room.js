@@ -32,8 +32,11 @@ const permissions = require('./access/perms'), {
 	SHARE_FILE,
 	MODERATE_FILES,
 	MODERATE_ROOM,
-	LOCAL_RECORD_ROOM
+	LOCAL_RECORD_ROOM,
+	EMOTION_ANALYSIS
 } = permissions;
+
+const socketio = require('./socket');
 
 const { config } = require('./config/config');
 
@@ -62,6 +65,7 @@ const roomPermissions =
 	[MODERATE_FILES]    : [ userRoles.MODERATOR ],
 	[MODERATE_ROOM]     : [ userRoles.MODERATOR ],
 	[LOCAL_RECORD_ROOM] : [ userRoles.NORMAL ],
+	[EMOTION_ANALYSIS]  : [ userRoles.PHYSICIAN ],
 	...config.permissionsFromRoles
 };
 
@@ -782,14 +786,14 @@ class Room extends EventEmitter
 						const resString = Buffer.concat(body).toString();
 						const reply = JSON.parse(resString);
 						if (reply.output.length > 0) {
-						  logger.info('Received BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
+						  logger.debug('Received BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
 						//   TODO: Send to interested parties
 						//   physicians
 						// 	.to(reply.emotions.userId)
 						// 	.volatile.emit("emotion", JSON.stringify(reply.emotions));
 						}
 						else {
-							logger.info("Received BentoML reply with no results");
+							logger.debug("Received BentoML reply with no results");
 						}
 					  } catch (error) {
 						logger.error("BentoML empty reply", error);
@@ -1908,6 +1912,9 @@ class Room extends EventEmitter
 
 			case 'start-emotion-analysis':
 			{
+				if(!this._hasPermission(peer, EMOTION_ANALYSIS))
+					throw new Error('peer not authorized');
+
 				const { peerId } = request.data;
 
 				const analyzePeer= this._peers[peerId];
@@ -1915,7 +1922,36 @@ class Room extends EventEmitter
 				if (!analyzePeer)
 					throw new Error(`peer with id "${peerId}" not found`);
 
+				// join room of the analyzed peer in order to receive results 
+				peer.socket.join(analyzePeer.id);
+
 				this._startEmotionAnalysis(analyzePeer);
+
+				cb();
+
+				break;
+			}
+
+			case 'stop-emotion-analysis':
+			{
+				if(!this._hasPermission(peer, EMOTION_ANALYSIS))
+					throw new Error('peer not authorized');
+
+				const { peerId } = request.data;
+
+				const analyzePeer= this._peers[peerId];
+
+				if (!analyzePeer)
+					throw new Error(`peer with id "${peerId}" not found`);
+				
+				// leave room of the analyzed peer in order to stop receiving results 
+				peer.socket.leave(analyzePeer.id);
+				
+				this._stopEmotionAnalysis(analyzePeer);
+
+				cb();
+
+				break;
 			}
 			default:
 			{
@@ -1927,6 +1963,14 @@ class Room extends EventEmitter
 	}
 
 	 async _startEmotionAnalysis(peer) {
+		logger.debug('_startEmotionAnalysis() [peerId:%o]', peer.id);
+		
+
+		if (peer.process) {
+			logger.debug(`Emotions of Peer with id ${peer.id} are already being analyzed`);
+			return;
+		  }
+
 		let recordInfo = {plainConsumerIDs: {}};
 	  
 		for (const producer of peer.producers.values()) {
@@ -1950,7 +1994,6 @@ class Room extends EventEmitter
 	  };
 
 	   async _publishProducerRtpStream(peer, producer) {
-		console.log('publishProducerRtpStream()');
 		const router = this._mediasoupRouters.get(peer.routerId);
 		// Create the mediasoup RTP Transport used to send media to the GStreamer process
 		const rtpTransportConfig = config.mediasoup.plainRtpTransport
@@ -2013,6 +2056,28 @@ class Room extends EventEmitter
 		};
 	  };
 
+	 async _stopEmotionAnalysis(peer) {
+		logger.debug('_stopEmotionAnalysis() [peerId:%o]', peer.id);
+
+		const hasSubscribers = socketio.getio().sockets.adapter.rooms[peer.id] !== undefined;   
+
+		if (!peer.process) {
+			logger.error(`Emotions of Peer with id ${peer.id} are not analyzed`);
+			return;
+		  }
+
+		if (hasSubscribers) {
+			logger.debug(`Peer with id ${peer.id} has subscribers`);
+			return;
+		}
+		peer.process.kill();
+		peer.process = undefined;
+
+		// Release ports from port set
+		for (const remotePort of peer.remotePorts) {
+		releasePort(remotePort);
+		}
+	 }
 	/**
 	 * Creates a mediasoup Consumer for the given mediasoup Producer.
 	 *
@@ -2294,7 +2359,7 @@ class Room extends EventEmitter
 		}
 	}
 
-	_notification(socket, method, data = {}, broadcast = false, includeSender = false)
+	_notification(socket, method, data = {}, broadcast = false, includeSender = false, isEmotionResult = false)
 	{
 		if (broadcast)
 		{
@@ -2304,6 +2369,10 @@ class Room extends EventEmitter
 
 			if (includeSender)
 				socket.emit('notification', { method, data });
+		}
+		else if (isEmotionResult)
+		{
+			//  physicians.to(reply.emotions.userId).volatile.emit("emotion", JSON.stringify(reply.emotions));
 		}
 		else
 		{
