@@ -15,6 +15,7 @@ import recorder from './recorder';
 import settings from './settings';
 import config from './config';
 import intl from './intl';
+import emotion from './emotion';
 
 export default combineReducers({
 	// intl : intlReducer,
@@ -33,5 +34,6 @@ export default combineReducers({
 	recorder,
 	settings,
 	config,
-	intl
+	intl,
+	emotion
 });

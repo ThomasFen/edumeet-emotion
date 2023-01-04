@@ -9,6 +9,7 @@ import * as roomActions from './store/actions/roomActions';
 import * as peerActions from './store/actions/peerActions';
 import * as peerVolumeActions from './store/actions/peerVolumeActions';
 import * as settingsActions from './store/actions/settingsActions';
+import * as emotionActions from './store/actions/emotionActions';
 import * as chatActions from './store/actions/chatActions';
 import * as fileActions from './store/actions/fileActions';
 import * as lobbyPeerActions from './store/actions/lobbyPeerActions';
@@ -1206,7 +1207,7 @@ export default class RoomClient
 			await this.sendRequest('start-emotion-analysis', { peerId });
 
 			store.dispatch(
-				settingsActions.setEmotionAnalysisActive(true));
+				emotionActions.initEmotion(peerId));
 
 		}
 		catch (error)
@@ -1234,8 +1235,7 @@ export default class RoomClient
 			await this.sendRequest('stop-emotion-analysis', { peerId });
 
 			store.dispatch(
-				settingsActions.setEmotionAnalysisActive(false));
-
+				emotionActions.deleteEmotion(peerId));
 		}
 		catch (error)
 		{

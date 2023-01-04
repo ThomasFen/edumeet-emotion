@@ -41,8 +41,7 @@ const initialState =
 	opusFec                   : config.opusFec,
 	opusPtime                 : config.opusPtime,
 	opusMaxPlaybackRate       : config.opusMaxPlaybackRate,
-	enableOpusDetails         : false,
-	emotionAnalysisActive     : false
+	enableOpusDetails         : false
 };
 
 const settings = (state = initialState, action) =>
@@ -307,13 +306,6 @@ const settings = (state = initialState, action) =>
 			const { audioMuted } = action.payload;
 
 			return { ...state, audioMuted };
-		}
-
-		case 'SET_EMOTION_ANALYSIS_ACTIVE':
-		{
-			const { emotionAnalysisActive } = action.payload;
-
-			return { ...state, emotionAnalysisActive };
 		}
 
 		case 'SET_VIDEO_MUTED':

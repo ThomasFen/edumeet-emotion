@@ -158,6 +158,7 @@ const Me = (props) =>
 		roomClient,
 		me,
 		settings,
+		emotionState,
 		activeSpeaker,
 		spacing,
 		style,
@@ -358,7 +359,7 @@ const Me = (props) =>
 			defaultMessage : 'You have no permission to analyze emotions'
 		});
 	}
-	else if (settings.emotionAnalysisActive)
+	else if (emotionState.emotions[me.id])
 	{
 		emotionAnalysisState = 'active';
 		emotionAnalysisTip = intl.formatMessage({
@@ -1097,6 +1098,7 @@ Me.propTypes =
 	advancedMode         : PropTypes.bool,
 	me                   : appPropTypes.Me.isRequired,
 	settings             : PropTypes.object,
+	emotionState         : PropTypes.object,
 	activeSpeaker        : PropTypes.bool,
 	micProducer          : appPropTypes.Producer,
 	webcamProducer       : appPropTypes.Producer,
@@ -1145,6 +1147,7 @@ const makeMapStateToProps = () =>
 			me                   : state.me,
 			...meProducersSelector(state),
 			settings             : state.settings,
+			emotionState         : state.emotion,
 			activeSpeaker        : state.me.id === state.room.activeSpeakerId,
 			hasAudioPermission   : canShareAudio(state),
 			hasVideoPermission   : canShareVideo(state),
