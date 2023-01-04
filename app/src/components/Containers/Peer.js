@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { makePeerConsumerSelector, recordingConsentsPeersSelector } from '../../store/selectors';
+import { makePeerConsumerSelector, recordingConsentsPeersSelector, makePermissionSelector } from '../../store/selectors';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import * as appPropTypes from '../appPropTypes';
 import { withRoomContext } from '../../RoomContext';
+import CancelIcon from '@material-ui/icons/Cancel';
+import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
 import { withStyles } from '@material-ui/core/styles';
+import { permissions } from '../../permissions';
 import * as roomActions from '../../store/actions/roomActions';
 import { useIntl, FormattedMessage } from 'react-intl';
 import VideoView from '../VideoContainers/VideoView';
@@ -142,6 +145,8 @@ const Peer = (props) =>
 		peer,
 		activeSpeaker,
 		browser,
+		emotionState,
+		hasEmotionPermission,
 		micConsumer,
 		webcamConsumer,
 		screenConsumer,
@@ -208,6 +213,35 @@ const Peer = (props) =>
 			}
 		}
 	);
+
+	let emotionAnalysisState;
+
+	let emotionAnalysisTip;
+
+	if (!hasEmotionPermission)
+	{
+		emotionAnalysisState = 'unsupported';
+		emotionAnalysisTip = intl.formatMessage({
+			id             : 'device.emotionUnsupported',
+			defaultMessage : 'You have no permission to analyze emotions'
+		});
+	}
+	else if (emotionState.emotions[peer.id])
+	{
+		emotionAnalysisState = 'active';
+		emotionAnalysisTip = intl.formatMessage({
+			id             : 'emotion.stopAnalysis',
+			defaultMessage : 'Deactivate emotion analysis'
+		});
+	}
+	else
+	{
+		emotionAnalysisState = 'inactive';
+		emotionAnalysisTip = intl.formatMessage({
+			id             : 'emotion.startAnalysis',
+			defaultMessage : 'Activate emotion analysis'
+		});
+	}
 
 	// Extend styles/props values
 	useEffect(() =>
@@ -480,6 +514,41 @@ const Peer = (props) =>
 							}, 2000);
 						}}
 					>
+						<Tooltip
+							title={emotionAnalysisTip}
+							placement={height <= 190 ? 'bottom' : 'left'}
+						>
+							<div>
+								<Fab
+									aria-label={intl.formatMessage({
+										id             : 'emotion.startAnalysis',
+										defaultMessage : 'Activate emotion analysis'
+									})}
+									style={{ ...controls.item.style }}
+									disabled={!hasEmotionPermission}
+									className={classnames('fab')}
+									color={emotionAnalysisState === 'active' ?
+										'secondary'
+										: 'default'
+									}
+
+									size={controls.item.size}
+									onClick={() =>
+									{
+										if (emotionAnalysisState === 'active')
+											roomClient.emotionStopAnalysis(peer.id);
+										else
+											roomClient.emotionStartAnalysis(peer.id);
+									}}
+								>
+									{ emotionAnalysisState === 'active' ?
+										<CancelIcon />
+										:
+										<EmojiEmotionsIcon />
+									}
+								</Fab>
+							</div>
+						</Tooltip>
 
 						{micConsumer &&
 						<Tooltip
@@ -1062,6 +1131,7 @@ Peer.propTypes =
 	extraVideoConsumers      : PropTypes.arrayOf(appPropTypes.Consumer),
 	windowConsumer           : PropTypes.string,
 	fullScreenConsumer       : PropTypes.string,
+	emotionState             : PropTypes.object,
 	activeSpeaker            : PropTypes.bool,
 	browser                  : PropTypes.object.isRequired,
 	spacing                  : PropTypes.number,
@@ -1069,6 +1139,7 @@ Peer.propTypes =
 	toggleConsumerFullscreen : PropTypes.func.isRequired,
 	toggleConsumerWindow     : PropTypes.func.isRequired,
 	classes                  : PropTypes.object.isRequired,
+	hasEmotionPermission     : PropTypes.bool.isRequired,
 	theme                    : PropTypes.object.isRequired,
 	enableLayersSwitch       : PropTypes.bool,
 	isSelected               : PropTypes.bool,
@@ -1080,20 +1151,24 @@ Peer.propTypes =
 const makeMapStateToProps = (initialState, { id }) =>
 {
 	const getPeerConsumers = makePeerConsumerSelector();
+	const canAnalyzeEmotions =
+		makePermissionSelector(permissions.EMOTION_ANALYSIS);
 
 	const mapStateToProps = (state) =>
 	{
 		return {
-			peer                : state.peers[id],
+			peer                 : state.peers[id],
 			...getPeerConsumers(state, id),
-			windowConsumer      : state.room.windowConsumer,
-			fullScreenConsumer  : state.room.fullScreenConsumer,
-			activeSpeaker       : id === state.room.activeSpeakerId,
-			browser             : state.me.browser,
-			isSelected          : state.room.selectedPeers.includes(id),
-			mode                : state.room.mode,
-			localRecordingState : state.recorder.localRecordingState.status,
-			recordingConsents   : recordingConsentsPeersSelector(state)
+			windowConsumer       : state.room.windowConsumer,
+			fullScreenConsumer   : state.room.fullScreenConsumer,
+			activeSpeaker        : id === state.room.activeSpeakerId,
+			emotionState         : state.emotion,
+			browser              : state.me.browser,
+			hasEmotionPermission : canAnalyzeEmotions(state),
+			isSelected           : state.room.selectedPeers.includes(id),
+			mode                 : state.room.mode,
+			localRecordingState  : state.recorder.localRecordingState.status,
+			recordingConsents    : recordingConsentsPeersSelector(state)
 		};
 	};
 
