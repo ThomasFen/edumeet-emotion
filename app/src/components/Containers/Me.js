@@ -158,7 +158,7 @@ const Me = (props) =>
 		roomClient,
 		me,
 		settings,
-		emotionState,
+		emotionAnalysisActive,
 		activeSpeaker,
 		spacing,
 		style,
@@ -359,7 +359,7 @@ const Me = (props) =>
 			defaultMessage : 'You have no permission to analyze emotions'
 		});
 	}
-	else if (emotionState.emotions[me.id])
+	else if (emotionAnalysisActive)
 	{
 		emotionAnalysisState = 'active';
 		emotionAnalysisTip = intl.formatMessage({
@@ -1094,28 +1094,28 @@ const Me = (props) =>
 
 Me.propTypes =
 {
-	roomClient           : PropTypes.any.isRequired,
-	advancedMode         : PropTypes.bool,
-	me                   : appPropTypes.Me.isRequired,
-	settings             : PropTypes.object,
-	emotionState         : PropTypes.object,
-	activeSpeaker        : PropTypes.bool,
-	micProducer          : appPropTypes.Producer,
-	webcamProducer       : appPropTypes.Producer,
-	screenProducer       : appPropTypes.Producer,
-	extraVideoProducers  : PropTypes.arrayOf(appPropTypes.Producer),
-	spacing              : PropTypes.number,
-	style                : PropTypes.object,
-	hasAudioPermission   : PropTypes.bool.isRequired,
-	hasVideoPermission   : PropTypes.bool.isRequired,
-	hasScreenPermission  : PropTypes.bool.isRequired,
-	hasEmotionPermission : PropTypes.bool.isRequired,
-	noiseVolume          : PropTypes.number,
-	classes              : PropTypes.object.isRequired,
-	theme                : PropTypes.object.isRequired,
-	transports           : PropTypes.object.isRequired,
-	localRecordingState  : PropTypes.string,
-	recordingConsents    : PropTypes.array
+	roomClient            : PropTypes.any.isRequired,
+	advancedMode          : PropTypes.bool,
+	me                    : appPropTypes.Me.isRequired,
+	settings              : PropTypes.object,
+	emotionAnalysisActive : PropTypes.object,
+	activeSpeaker         : PropTypes.bool,
+	micProducer           : appPropTypes.Producer,
+	webcamProducer        : appPropTypes.Producer,
+	screenProducer        : appPropTypes.Producer,
+	extraVideoProducers   : PropTypes.arrayOf(appPropTypes.Producer),
+	spacing               : PropTypes.number,
+	style                 : PropTypes.object,
+	hasAudioPermission    : PropTypes.bool.isRequired,
+	hasVideoPermission    : PropTypes.bool.isRequired,
+	hasScreenPermission   : PropTypes.bool.isRequired,
+	hasEmotionPermission  : PropTypes.bool.isRequired,
+	noiseVolume           : PropTypes.number,
+	classes               : PropTypes.object.isRequired,
+	theme                 : PropTypes.object.isRequired,
+	transports            : PropTypes.object.isRequired,
+	localRecordingState   : PropTypes.string,
+	recordingConsents     : PropTypes.array
 };
 
 const makeMapStateToProps = () =>
@@ -1144,19 +1144,19 @@ const makeMapStateToProps = () =>
 		else { noise = 10; }
 
 		return {
-			me                   : state.me,
+			me                    : state.me,
 			...meProducersSelector(state),
-			settings             : state.settings,
-			emotionState         : state.emotion,
-			activeSpeaker        : state.me.id === state.room.activeSpeakerId,
-			hasAudioPermission   : canShareAudio(state),
-			hasVideoPermission   : canShareVideo(state),
-			hasScreenPermission  : canShareScreen(state),
-			hasEmotionPermission : canAnalyzeEmotions(state),
-			noiseVolume          : noise,
-			transports           : state.transports,
-			localRecordingState  : state.recorder.localRecordingState.status,
-			recordingConsents    : recordingConsentsPeersSelector(state)
+			settings              : state.settings,
+			activeSpeaker         : state.me.id === state.room.activeSpeakerId,
+			emotionAnalysisActive : state.me.id in state.emotion.emotions,
+			hasAudioPermission    : canShareAudio(state),
+			hasVideoPermission    : canShareVideo(state),
+			hasScreenPermission   : canShareScreen(state),
+			hasEmotionPermission  : canAnalyzeEmotions(state),
+			noiseVolume           : noise,
+			transports            : state.transports,
+			localRecordingState   : state.recorder.localRecordingState.status,
+			recordingConsents     : recordingConsentsPeersSelector(state)
 		};
 	};
 
@@ -1178,6 +1178,7 @@ export default withRoomContext(connect(
 				prev.peers === next.peers &&
 				prev.producers === next.producers &&
 				prev.settings === next.settings &&
+				prev.emotion.emotions === next.emotion.emotions &&
 				prev.transports === next.transports &&
 				prev.recorder.localRecordingState.status ===
 				next.recorder.localRecordingState.status &&

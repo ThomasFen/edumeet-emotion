@@ -145,7 +145,7 @@ const Peer = (props) =>
 		peer,
 		activeSpeaker,
 		browser,
-		emotionState,
+		emotionAnalysisActive,
 		hasEmotionPermission,
 		micConsumer,
 		webcamConsumer,
@@ -226,7 +226,7 @@ const Peer = (props) =>
 			defaultMessage : 'You have no permission to analyze emotions'
 		});
 	}
-	else if (emotionState.emotions[peer.id])
+	else if (emotionAnalysisActive)
 	{
 		emotionAnalysisState = 'active';
 		emotionAnalysisTip = intl.formatMessage({
@@ -1131,7 +1131,7 @@ Peer.propTypes =
 	extraVideoConsumers      : PropTypes.arrayOf(appPropTypes.Consumer),
 	windowConsumer           : PropTypes.string,
 	fullScreenConsumer       : PropTypes.string,
-	emotionState             : PropTypes.object,
+	emotionAnalysisActive    : PropTypes.object,
 	activeSpeaker            : PropTypes.bool,
 	browser                  : PropTypes.object.isRequired,
 	spacing                  : PropTypes.number,
@@ -1157,18 +1157,18 @@ const makeMapStateToProps = (initialState, { id }) =>
 	const mapStateToProps = (state) =>
 	{
 		return {
-			peer                 : state.peers[id],
+			peer                  : state.peers[id],
 			...getPeerConsumers(state, id),
-			windowConsumer       : state.room.windowConsumer,
-			fullScreenConsumer   : state.room.fullScreenConsumer,
-			activeSpeaker        : id === state.room.activeSpeakerId,
-			emotionState         : state.emotion,
-			browser              : state.me.browser,
-			hasEmotionPermission : canAnalyzeEmotions(state),
-			isSelected           : state.room.selectedPeers.includes(id),
-			mode                 : state.room.mode,
-			localRecordingState  : state.recorder.localRecordingState.status,
-			recordingConsents    : recordingConsentsPeersSelector(state)
+			windowConsumer        : state.room.windowConsumer,
+			fullScreenConsumer    : state.room.fullScreenConsumer,
+			activeSpeaker         : id === state.room.activeSpeakerId,
+			emotionAnalysisActive : id in state.emotion.emotions,
+			browser               : state.me.browser,
+			hasEmotionPermission  : canAnalyzeEmotions(state),
+			isSelected            : state.room.selectedPeers.includes(id),
+			mode                  : state.room.mode,
+			localRecordingState   : state.recorder.localRecordingState.status,
+			recordingConsents     : recordingConsentsPeersSelector(state)
 		};
 	};
 
@@ -1205,6 +1205,7 @@ export default withRoomContext(connect(
 				prev.room.windowConsumer === next.room.windowConsumer &&
 				prev.room.fullScreenConsumer === next.room.fullScreenConsumer &&
 				prev.room.mode === next.room.mode &&
+				prev.emotion.emotions === next.emotion.emotions &&
 				prev.room.selectedPeers === next.room.selectedPeers &&
 				prev.me.browser === next.me.browser &&
 				prev.enableLayersSwitch === next.enableLayersSwitch &&
