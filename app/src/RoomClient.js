@@ -3759,6 +3759,17 @@ export default class RoomClient
 			}
 
 		});
+
+		this._signalingSocket.on('emotion', function(msg)
+		{
+			const emotion = JSON.parse(msg);
+			const timestamp = Date.now();
+
+			store.dispatch(
+				emotionActions.addEmotion(emotion.userId,
+					emotion.emotions[0].dominantEmotion, timestamp)
+			);
+		});
 	}
 
 	async _joinRoom({ joinVideo, joinAudio, returning })
