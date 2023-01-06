@@ -5,6 +5,15 @@ import { useSelector } from 'react-redux';
 import { RadialGradient } from '@visx/gradient';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom } from '@visx/axis';
+import { SvgIcon } from '@material-ui/core';
+import { ReactComponent as AngerSvg } from '../emotion/icons/svg/emotion-anger.svg';
+import { ReactComponent as ContemptSvg } from '../emotion/icons/svg/emotion-contempt.svg';
+import { ReactComponent as DisgustSvg } from '../emotion/icons/svg/emotion-disgust.svg';
+import { ReactComponent as FearSvg } from '../emotion/icons/svg/emotion-fear.svg';
+import { ReactComponent as HappySvg } from '../emotion/icons/svg/emotion-happy.svg';
+import { ReactComponent as NeutralSvg } from '../emotion/icons/svg/emotion-neutral.svg';
+import { ReactComponent as SadSvg } from '../emotion/icons/svg/emotion-sad.svg';
+import { ReactComponent as SurpriseSvg } from '../emotion/icons/svg/emotion-surprise.svg';
 import {
 	EMOTION_SURPRISE_SHORT,
 	EMOTION_NEUTRAL_SHORT,
@@ -49,6 +58,15 @@ export default function EmotionPopoverContent({
 				peerId
 			]
 	);
+
+	const currentEmotion = useSelector(
+		(state) =>
+			state.emotion.emotions[
+				peerId
+			]
+	);
+
+	const EmotionIcon = emotionToIcon(currentEmotion);
 
 	// data
 	const data = [
@@ -110,66 +128,100 @@ export default function EmotionPopoverContent({
 	//     range: [blue, green, purple],
 	//   });
 
-	return width < 10 ? null : (
-		<svg width={width} height={height}>
-			<RadialGradient
-				id={'jitsiBlue'}
-				from='#3f6296'
-				to='#122c52'
-				r='60%'
-			/>
-			<rect
-				width={width}
-				height={height}
-				fill='url(#jitsiBlue)'
-				rx={14}
-			/>
-			<Group top={verticalMargin / 2}>
-				{data.map((d, i) =>
-				{
-					const letter = getEmotion(d);
-					const barWidth = xScale.bandwidth();
-					const barHeight =
-						yMax - (yScale(getEmotionFrequency(d)) ?? 0);
-					const barX = xScale(letter);
-					const barY = yMax - barHeight;
+	function emotionToIcon(emotion)
+	{
+		switch (emotion)
+		{
+			case EMOTION_ANGER:
+				return AngerSvg;
+			case EMOTION_CONTEMPT:
+				return ContemptSvg;
+			case EMOTION_DISGUST:
+				return DisgustSvg;
+			case EMOTION_FEAR:
+				return FearSvg;
+			case EMOTION_HAPPY:
+				return HappySvg;
+			case EMOTION_NEUTRAL:
+				return NeutralSvg;
+			case EMOTION_SAD:
+				return SadSvg;
+			case EMOTION_SURPRISE:
+				return SurpriseSvg;
+			default:
+				return null;
+		}
+	}
 
-					return (
-						<Bar
-							key={`bar-${letter}`}
-							x={barX}
-							y={barY}
-							width={barWidth}
-							height={barHeight}
-							fill={BARCOLOR}
-							onClick={() =>
-							{
-								if (events)
+	return width < 10 ? null : (
+		// create a div element
+		<div>
+			<SvgIcon
+				fontSize='large'
+			>
+				{EmotionIcon && <EmotionIcon/>}
+			</SvgIcon>
+
+			<svg width={width} height={height}>
+				<RadialGradient
+					id={'jitsiBlue'}
+					from='#3f6296'
+					to='#122c52'
+					r='60%'
+				/>
+				<rect
+					width={width}
+					height={height}
+					fill='url(#jitsiBlue)'
+					rx={14}
+				/>
+				<Group top={verticalMargin / 2}>
+					{data.map((d, i) =>
+					{
+						const letter = getEmotion(d);
+						const barWidth = xScale.bandwidth();
+						const barHeight =
+						yMax - (yScale(getEmotionFrequency(d)) ?? 0);
+						const barX = xScale(letter);
+						const barY = yMax - barHeight;
+
+						return (
+							<Bar
+								key={`bar-${letter}`}
+								x={barX}
+								y={barY}
+								width={barWidth}
+								height={barHeight}
+								fill={BARCOLOR}
+								onClick={() =>
+								{
+									if (events)
 									// eslint-disable-next-line no-alert
-									alert(
-										`${JSON.stringify(
-											Object.values(d)
-										)} Seconds`
-									);
-							}}
-						/>
-					);
-				})}
-			</Group>
-			<AxisBottom
-				top={yMax + verticalMargin / 2}
-				tickLength={0}
-				hideTicks
-				scale={xScale}
-				// stroke={green}
-				// tickStroke={green}
-				hideAxisLine
-				tickLabelProps={() => ({
-					fill       : WHITE,
-					fontSize   : 11,
-					textAnchor : 'middle'
-				})}
-			/>
-		</svg>
+										alert(
+											`${JSON.stringify(
+												Object.values(d)
+											)} Seconds`
+										);
+								}}
+							/>
+						);
+					})}
+				</Group>
+				<AxisBottom
+					top={yMax + verticalMargin / 2}
+					tickLength={0}
+					hideTicks
+					scale={xScale}
+					// stroke={green}
+					// tickStroke={green}
+					hideAxisLine
+					tickLabelProps={() => ({
+						fill       : WHITE,
+						fontSize   : 11,
+						textAnchor : 'middle'
+					})}
+				/>
+			</svg>
+		</div>
 	);
 }
