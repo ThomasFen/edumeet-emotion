@@ -3,11 +3,13 @@ import { connect } from 'react-redux';
 import { makePeerConsumerSelector, recordingConsentsPeersSelector, makePermissionSelector } from '../../store/selectors';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
+import Popover from '@material-ui/core/Popover';
 import * as appPropTypes from '../appPropTypes';
 import { withRoomContext } from '../../RoomContext';
 import CancelIcon from '@material-ui/icons/Cancel';
 import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, makeStyles } from '@material-ui/core/styles';
+import EmotionPopoverContent from '../emotion/EmotionPopoverContent';
 import { permissions } from '../../permissions';
 import * as roomActions from '../../store/actions/roomActions';
 import { useIntl, FormattedMessage } from 'react-intl';
@@ -425,6 +427,30 @@ const Peer = (props) =>
 	// menu
 	const [ menuAnchorElement, setMenuAnchorElement ] = React.useState(null);
 	const [ showAudioAnalyzer, setShowAudioAnalyzer ] = React.useState(null);
+	const [ anchorEl, setAnchorEl ] = React.useState(null);
+	const open = Boolean(anchorEl);
+
+	const emotionPopupOpen = (event) =>
+	{
+		setAnchorEl(event.currentTarget);
+	};
+
+	const emotionPopupClose = () =>
+	{
+		setAnchorEl(null);
+
+	};
+
+	const useStyles = makeStyles(() => ({
+		popover : {
+			pointerEvents : 'none'
+		},
+		paper : {
+			backgroundColor : 'transparent',
+			boxShadow       : 'none'
+		}
+	}));
+	const classesPopover = useStyles();
 
 	const handleMenuOpen = (event) =>
 	{
@@ -531,8 +557,11 @@ const Peer = (props) =>
 										'secondary'
 										: 'default'
 									}
-
 									size={controls.item.size}
+									onMouseEnter={emotionPopupOpen}
+									onMouseLeave={emotionPopupClose}
+									aria-haspopup='true'
+									aria-owns={open ? 'mouse-over-popover' : undefined}
 									onClick={() =>
 									{
 										if (emotionAnalysisState === 'active')
@@ -547,6 +576,33 @@ const Peer = (props) =>
 										<EmojiEmotionsIcon />
 									}
 								</Fab>
+								{ emotionAnalysisState === 'active' &&
+								<Popover
+									id='mouse-over-popover'
+									open={open}
+									className={classesPopover.popover}
+									disableRestoreFocus
+									anchorEl={anchorEl}
+									classes={{
+										paper : classesPopover.paper
+									}}
+									onClose={emotionPopupClose}
+									anchorOrigin={{
+										vertical   : 'top',
+										horizontal : 'right'
+									}}
+									transformOrigin={{
+										vertical   : 'bottom',
+										horizontal : 'right'
+									}}
+								>
+									<EmotionPopoverContent
+										width={240}
+										height={120}
+										peerId={peer.id}
+									/>
+								</Popover>
+								}
 							</div>
 						</Tooltip>
 

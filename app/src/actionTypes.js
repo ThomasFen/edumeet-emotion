@@ -10,6 +10,17 @@
 export const ADD_EMOTION = 'ADD_EMOTION';
 
 /**
+ * Redux action type dispatched in order to restart emotion expression analysis.
+ *
+ * {
+ *      type: RESTART_EMOTION,
+ *      emotion: string,
+ *      patientId: string
+ * }
+ */
+export const RESTART_EMOTION = 'RESTART_EMOTION';
+
+/**
 * Redux action type dispatched in order to remove the emotion
 * of a patient.
 *

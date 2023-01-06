@@ -1204,10 +1204,16 @@ export default class RoomClient
 
 		try
 		{
+			const hasHistory = peerId in store.getState().emotion.emotionHistory;
+
 			await this.sendRequest('start-emotion-analysis', { peerId });
 
-			store.dispatch(
-				emotionActions.initEmotion(peerId));
+			if (hasHistory)
+				store.dispatch(
+					emotionActions.restartEmotion(peerId));
+			else
+				store.dispatch(
+					emotionActions.initEmotion(peerId));
 
 		}
 		catch (error)

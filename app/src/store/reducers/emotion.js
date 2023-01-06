@@ -1,6 +1,7 @@
 import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
+	RESTART_EMOTION,
 	INIT_EMOTION
 } from '../../actionTypes';
 
@@ -43,6 +44,15 @@ const emotion = (state = initialState, action) =>
 						[EMOTION_NEUTRAL]  : [],
 						[EMOTION_SURPRISE] : []
 					}
+				}
+			};
+		}
+		case RESTART_EMOTION: {
+			return {
+				...state,
+				emotions : {
+					...state.emotions,
+					[action.payload.peerId] : '-1'
 				}
 			};
 		}
