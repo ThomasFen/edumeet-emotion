@@ -10,22 +10,22 @@ export default function EmotionBoxes({
 
 	const logger = useMemo(() => (new Logger('EmotionBoxes')), []);
 
-	const currentEmotion = useSelector(
+	const currentBox = useSelector(
 		(state) =>
-			state.emotion.emotions[
+			state.emotion.boxes[
 				peerId
 			]
 	);
 
 	useEffect(() =>
 	{
-		logger.debug(`Current emotion: ${currentEmotion}`);
+		logger.debug(`Current box: ${currentBox}`);
 
 		try
 		{
 			requestAnimationFrame(() =>
 			{
-				if (canvas.current)
+				if (canvas.current && currentBox)
 				{
 					canvas.current.height = canvas.current.offsetHeight;
 					canvas.current.width = canvas.current.offsetWidth;
@@ -34,7 +34,8 @@ export default function EmotionBoxes({
 					if (ctx)
 					{
 						ctx.beginPath();
-						ctx.rect(0, 0, 50, 50);
+						ctx.rect(currentBox[0], currentBox[1], currentBox[2] - currentBox[0],
+							currentBox[3] - currentBox[1]);
 						ctx.strokeStyle = 'red';
 						ctx.stroke();
 					}
@@ -46,7 +47,7 @@ export default function EmotionBoxes({
 		{
 			logger.error('Error during drawing Face Bounding Boxes! error:%O', error);
 		}
-	}, [ canvas, currentEmotion, logger ]);
+	}, [ canvas, currentBox, logger ]);
 
 	return (
 		<canvas

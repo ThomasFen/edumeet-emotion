@@ -18,6 +18,7 @@ import {
 
 const initialState = {
 	emotions       : {},
+	boxes     		   : {},
 	emotionHistory : {}
 };
 
@@ -30,7 +31,11 @@ const emotion = (state = initialState, action) =>
 				...state,
 				emotions : {
 					...state.emotions,
-					[action.payload.peerId] : '-1'
+					[action.payload.peerId] : null
+				},
+				boxes : {
+					...state.boxes,
+					[action.payload.peerId] : null
 				},
 				emotionHistory : {
 					...state.emotionHistory,
@@ -52,7 +57,11 @@ const emotion = (state = initialState, action) =>
 				...state,
 				emotions : {
 					...state.emotions,
-					[action.payload.peerId] : '-1'
+					[action.payload.peerId] : null
+				},
+				boxes : {
+					...state.boxes,
+					[action.payload.peerId] : null
 				}
 			};
 		}
@@ -62,6 +71,10 @@ const emotion = (state = initialState, action) =>
 				emotions : {
 					...state.emotions,
 					[action.payload.peerId] : action.payload.emotion
+				},
+				boxes : {
+					...state.boxes,
+					[action.payload.peerId] : action.payload.box
 				},
 				emotionHistory : {
 					...state.emotionHistory,
@@ -81,7 +94,11 @@ const emotion = (state = initialState, action) =>
 		case DELETE_EMOTION: {
 			const newEmotions = { ...state.emotions };
 
+			const newBoxes = { ...state.boxes };
+
 			delete newEmotions[action.payload.peerId];
+
+			delete newBoxes[action.payload.peerId];
 
 			return {
 				...state,
