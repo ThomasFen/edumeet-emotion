@@ -11,6 +11,7 @@ import SignalCellular1BarIcon from '@material-ui/icons/SignalCellular1Bar';
 import SignalCellular2BarIcon from '@material-ui/icons/SignalCellular2Bar';
 import SignalCellular3BarIcon from '@material-ui/icons/SignalCellular3Bar';
 import { AudioAnalyzer } from './AudioAnalyzer';
+import EmotionBoxes from './EmotionBoxes';
 
 const logger = new Logger('VideoView');
 
@@ -473,6 +474,7 @@ class VideoView extends React.PureComponent
 					muted
 					controls={false}
 				/>
+				<EmotionBoxes peerId={peer.id}/>
 
 				{children}
 			</div>
