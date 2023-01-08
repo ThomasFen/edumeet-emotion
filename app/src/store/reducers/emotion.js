@@ -102,7 +102,8 @@ const emotion = (state = initialState, action) =>
 
 			return {
 				...state,
-				emotions : newEmotions
+				emotions : newEmotions,
+				boxes    : newBoxes
 			};
 		}
 

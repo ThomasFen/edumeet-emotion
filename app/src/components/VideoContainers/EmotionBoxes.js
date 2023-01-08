@@ -17,6 +17,13 @@ export default function EmotionBoxes({
 			]
 	);
 
+	const currentEmotion = useSelector(
+		(state) =>
+			state.emotion.emotions[
+				peerId
+			]
+	);
+
 	useEffect(() =>
 	{
 		logger.debug(`Current box: ${currentBox}`);
@@ -25,17 +32,60 @@ export default function EmotionBoxes({
 		{
 			requestAnimationFrame(() =>
 			{
-				if (canvas.current && currentBox)
+				if (canvas.current)
 				{
 					canvas.current.height = canvas.current.offsetHeight;
 					canvas.current.width = canvas.current.offsetWidth;
+
+					logger._debug('Canvas size:', canvas.current.width, canvas.current.height);
+
 					const ctx = canvas.current.getContext('2d');
 
 					if (ctx)
 					{
+						if (!currentBox)
+						{
+							ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
+
+							return;
+						}
+						const { width, height } = canvas.current;
+						const longSide = Math.max(width, height);
+						const shortSide = Math.min(width, height);
+						const isWide = width === longSide;
+						const wholePadding = longSide - shortSide;
+						const sidePadding = wholePadding / 2;
+
+						let topLeftY, bottomRightY, topLeftX, bottomRightX;
+
+						if (isWide)
+						{
+							topLeftY = (canvas.current.height + wholePadding) * currentBox[0]
+								- sidePadding;
+							bottomRightY = (canvas.current.height + wholePadding) * currentBox[2]
+								- sidePadding;
+							topLeftX = canvas.current.width * currentBox[1];
+							bottomRightX = canvas.current.width * currentBox[3];
+						}
+						else
+						{
+							topLeftX = (canvas.current.height + wholePadding) * currentBox[1]
+								- sidePadding;
+							bottomRightX = (canvas.current.height + wholePadding) * currentBox[3]
+								- sidePadding;
+							topLeftY = canvas.current.height * currentBox[0];
+							bottomRightY = canvas.current.height * currentBox[2];
+						}
+
+						const boxWidth = bottomRightX - topLeftX;
+						const boxHeight = bottomRightY - topLeftY;
+
 						ctx.beginPath();
-						ctx.rect(currentBox[0], currentBox[1], currentBox[2] - currentBox[0],
-							currentBox[3] - currentBox[1]);
+						ctx.textBaseline = 'top';
+						ctx.font = '35pt bold arial';
+						ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
+						ctx.fillStyle = 'red';
+						ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
 						ctx.strokeStyle = 'red';
 						ctx.stroke();
 					}
@@ -47,7 +97,7 @@ export default function EmotionBoxes({
 		{
 			logger.error('Error during drawing Face Bounding Boxes! error:%O', error);
 		}
-	}, [ canvas, currentBox, logger ]);
+	}, [ canvas, currentBox, logger, currentEmotion ]);
 
 	return (
 		<canvas
