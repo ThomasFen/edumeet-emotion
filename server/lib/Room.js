@@ -766,13 +766,31 @@ class Room extends EventEmitter
 			if (!peer.joined)
 				return;
 			
+			const preAnalysisTimestamp = Date.now();
+
+			// If we have rate limited the peer to a lower fps, we need to check if we should send the frame to the analysis worker.
+			// ffmpeg subprocess is still using target fps. We filter out frames here to meet the lowered fps.
+			if (!peer.emotion.usingTargetFps) {
+				const sendToAnalysisWorker = (peer.emotion.nextTs <= preAnalysisTimestamp);
+
+				if (!sendToAnalysisWorker) {
+					logger.debug('Not meeting lowered emotion analysis fps. Not sending frame to worker [peer:"%s"]', peer.id);
+
+					return;
+				}
+
+				peer.emotion.nextTs = preAnalysisTimestamp + peer.emotion.msPerFrame
+
+			}
+
+
 			if (config.bentoML.enabled) {
 				const formData = new FormData();
 				const annotations = {
 				  userId: peer.id,
 				  conferenceId: this._roomId,
 				};
-		  
+
 				formData.append("annotations", JSON.stringify(annotations));
 				formData.append("image", buffer, "user.jpeg");
 				formData.submit(config.bentoML.URI, function (err, res) {
@@ -785,16 +803,37 @@ class Room extends EventEmitter
 					  try {
 						const resString = Buffer.concat(body).toString();
 						const reply = JSON.parse(resString);
+						const analysisLatency = Date.now() - preAnalysisTimestamp;
+
+						if (analysisLatency > peer.emotion.msPerFrame) {
+							// Switch to lower fps if latency is too high. Using 5 consecutive dropped results to protect against outliers.
+							if (peer.emotion.droppedResults === 5) {
+								logger.debug('Reached upper limit of allowed consecutive result drops because of high latency. Lowering fps ... [latency:"%o" ]', analysisLatency);
+
+								peer.emotion.msPerFrame = 1000/config.emotion.minFps;
+								peer.emotion.usingTargetFps = false;
+								peer.emotion.droppedResults = 0;
+							} else {
+								logger.debug('Dropping result because of high latency. [latency:"%o" ]', analysisLatency)
+
+								peer.emotion.droppedResults++;
+							}
+
+						  return;
+
+						} else {
+							logger.debug('BentoML analysis latency: %o', analysisLatency);
+
+							peer.emotion.droppedResults = 0;
+						}
+
 						if (reply.output.length > 0) {
-							logger.debug('Received BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
+							logger.debug('BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
 							// send emotion to all subscribers
 							socketio.getio().to(reply.emotions.userId).volatile.emit('emotion', JSON.stringify(reply.emotions));
 						}
-						else {
-							logger.debug("Received BentoML reply with no results");
-						}
 					  } catch (error) {
-						logger.error("BentoML empty reply", error);
+						logger.error("BentoML error", error);
 					  }
 					});
 				  }
@@ -1922,6 +1961,15 @@ class Room extends EventEmitter
 
 				// join room of the analyzed peer in order to receive results 
 				peer.socket.join(analyzePeer.id);
+				
+				// Initialize emotion analysis values
+				analyzePeer.emotion = {
+					msPerFrame: 1000 / config.emotion.targetFps,
+					nextTs: 0,
+					droppedResults: 0,
+					usingTargetFps: true,
+				  };
+				  
 
 				this._startEmotionAnalysis(analyzePeer);
 
@@ -1962,8 +2010,8 @@ class Room extends EventEmitter
 
 	 async _startEmotionAnalysis(peer) {
 		logger.debug('_startEmotionAnalysis() [peerId:%o]', peer.id);
-		
 
+		
 		if (peer.process) {
 			logger.debug(`Emotions of Peer with id ${peer.id} are already being analyzed`);
 			return;

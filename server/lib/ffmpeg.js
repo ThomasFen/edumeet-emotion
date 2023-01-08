@@ -1,6 +1,6 @@
 // Class to handle child process used for running FFmpeg
 import Logger from './logger/Logger';
-
+const { config } = require('./config/config');
 const child_process = require('child_process');
 const { EventEmitter } = require('events');
 const { createSdpText } = require('./sdp');
@@ -82,7 +82,7 @@ module.exports = class FFmpeg {
         this._process.kill('SIGINT');
     }
 
-    get _commandArgs() {
+     get _commandArgs() {
         let commandArgs = [
             '-loglevel',
             'debug',
@@ -106,7 +106,7 @@ module.exports = class FFmpeg {
             */
             // `${RECORD_FILE_LOCATION_PATH}/${this._rtpParameters.fileName}.webm`
             '-vf',
-            'fps=1',
+            `fps=${config.emotion.targetFps}`,
             '-f',
             // 'image2',
             'image2pipe',

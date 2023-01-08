@@ -267,6 +267,22 @@ const configSchema = convict({
 			default : ''
 		}
 	},
+	// Emotion setting
+	emotion : 
+	{
+		targetFps :
+		{
+			doc     : 'Target frame rate for sending images to emotion analysis worker.',
+			format  : 'nat',
+			default : 5
+		},
+		minFps :
+		{
+			doc     : 'Minimum acceptable frame rate for sending images to emotion analysis worker. Will be used as fallback in case of slow response time.',
+			format  : 'nat',
+			default : 1
+		}
+	},
 	// Mediasoup settings
 	mediasoup :
 	{
