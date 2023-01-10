@@ -2,7 +2,8 @@ import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
 	RESTART_EMOTION,
-	INIT_EMOTION
+	INIT_EMOTION,
+	SET_FACE_DETECTING
 } from '../../actionTypes';
 
 import {
@@ -17,9 +18,10 @@ import {
 } from '../../constants';
 
 const initialState = {
-	emotions       : {},
-	boxes     		   : {},
-	emotionHistory : {}
+	emotions        : {},
+	boxes      		   : {},
+	emotionHistory  : {},
+	isFaceDetecting : false
 };
 
 const emotion = (state = initialState, action) =>
@@ -105,6 +107,12 @@ const emotion = (state = initialState, action) =>
 				emotions : newEmotions,
 				boxes    : newBoxes
 			};
+		}
+
+		case SET_FACE_DETECTING: {
+			const { isFaceDetecting } = action.payload;
+
+			return { ...state, isFaceDetecting: isFaceDetecting };
 		}
 
 		default:

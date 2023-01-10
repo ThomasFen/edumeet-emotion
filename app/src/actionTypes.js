@@ -74,3 +74,12 @@ export const START_EMOTION_RECOGNITION = 'START_EMOTION_RECOGNITION';
 * }
 */
 export const STOP_EMOTION_RECOGNITION = 'STOP_EMOTION_RECOGNITION';
+
+/**
+* Redux action type dispatched in order to set whether local face detection is active.
+*
+* {
+*      type: SET_FACE_DETECTING
+* }
+*/
+export const SET_FACE_DETECTING = 'SET_FACE_DETECTING';

@@ -2,7 +2,8 @@ import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
 	INIT_EMOTION,
-	RESTART_EMOTION
+	RESTART_EMOTION,
+	SET_FACE_DETECTING
 } from '../../actionTypes';
 
 export const initEmotion = (peerId) =>
@@ -27,4 +28,10 @@ export const deleteEmotion = (peerId) =>
 	({
 		type    : DELETE_EMOTION,
 		payload : { peerId }
+	});
+
+export const setFaceDetectionStatus = (isFaceDetecting) =>
+	({
+		type    : SET_FACE_DETECTING,
+		payload : { isFaceDetecting }
 	});

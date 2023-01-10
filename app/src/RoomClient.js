@@ -1198,6 +1198,80 @@ export default class RoomClient
 		}
 	}
 
+	async sendFace(face)
+	{
+		const { blob, prediction } = face;
+
+		logger.debug('sendFace() [blob:"%o"], [prediction: "%o"]', blob, prediction);
+
+		try
+		{
+			logger.debug('TODO: send face to server [blob:"%o"], [prediction: "%o"]', blob, prediction);
+
+		}
+		catch (error)
+		{
+			logger.error('sendFace() [error:"%o"]', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : intl.formatMessage({
+						id             : 'emotion.startLocalFaceDetectionError',
+						defaultMessage : 'Unable to send face to server'
+					})
+				}));
+		}
+	}
+
+	async startLocalFaceDetection()
+	{
+		logger.debug('startLocalFaceDetection()');
+
+		try
+		{
+			store.dispatch(
+				emotionActions.setFaceDetectionStatus(true));
+		}
+		catch (error)
+		{
+			logger.error('startLocalFaceDetection() [error:"%o"]', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : intl.formatMessage({
+						id             : 'emotion.startLocalFaceDetectionError',
+						defaultMessage : 'Unable to start local face detection'
+					})
+				}));
+		}
+	}
+
+	async stopLocalFaceDetection()
+	{
+		logger.debug('stopLocalFaceDetection()');
+
+		try
+		{
+			store.dispatch(
+				emotionActions.setFaceDetectionStatus(false));
+		}
+		catch (error)
+		{
+			logger.error('stopLocalFaceDetection() [error:"%o"]', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : intl.formatMessage({
+						id             : 'emotion.stopLocalFaceDetectionError',
+						defaultMessage : 'Unable to stop local face detection'
+					})
+				}));
+		}
+	}
+
 	async emotionStartAnalysis(peerId)
 	{
 		logger.debug('emotionStartAnalysis()', peerId);

@@ -12,6 +12,11 @@ import SignalCellular2BarIcon from '@material-ui/icons/SignalCellular2Bar';
 import SignalCellular3BarIcon from '@material-ui/icons/SignalCellular3Bar';
 import { AudioAnalyzer } from './AudioAnalyzer';
 import EmotionBoxes from './EmotionBoxes';
+import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import * as faceMesh from '@mediapipe/face_mesh';
+import '@tensorflow/tfjs-core';
+// Register WebGL backend.
+import '@tensorflow/tfjs-backend-webgl';
 
 const logger = new Logger('VideoView');
 
@@ -201,6 +206,12 @@ class VideoView extends React.PureComponent
 
 		// Audio Analyzer
 		this.audioAnalyzerContainer = React.createRef();
+
+		// Periodic timer for face detection.
+		this._faceDetectionTimer = null;
+
+		this.videoRef = React.createRef();
+
 	}
 
 	render()
@@ -217,6 +228,7 @@ class VideoView extends React.PureComponent
 			videoContain,
 			advancedMode,
 			videoVisible,
+			hasEmotionPermission,
 			videoMultiLayer,
 			audioScore,
 			videoScore,
@@ -451,7 +463,7 @@ class VideoView extends React.PureComponent
 				</div>
 
 				<video
-					ref='videoElement'
+					ref={this.videoRef}
 					className={classnames(classes.video, {
 						hidden : (!videoVisible ||
 							(
@@ -474,11 +486,84 @@ class VideoView extends React.PureComponent
 					muted
 					controls={false}
 				/>
-				<EmotionBoxes peerId={peer.id}/>
+
+				{ hasEmotionPermission && <EmotionBoxes peerId={peer.id}/>}
 
 				{children}
 			</div>
 		);
+	}
+
+	extractFace(videoRef, prediction, cb)
+	{
+		const video = videoRef.current;
+
+		if (!video)
+		{
+			logger.error('No video element found. Cannot extract face.');
+
+			return;
+		}
+		logger.debug('Extracting face from video element');
+
+		const x = prediction.box.xMin;
+		const y = prediction.box.yMin;
+		const width = prediction.box.width;
+		const height = prediction.box.height;
+		const canvas = document.createElement('canvas');
+
+		canvas.width = width;
+		canvas.height = height;
+
+		const ctx = canvas.getContext('2d');
+
+		ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
+
+		canvas.toBlob((blob) =>
+		{
+			if (blob)
+				cb({ blob, prediction });
+		}, 'image/jpeg', 1);
+
+	}
+
+	async runDetection(onFace, videoRef)
+	{
+		const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+		const detectorConfig = {
+			runtime      : 'mediapipe', // or 'tfjs'
+			solutionPath : `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}`
+		};
+		const detector = await faceLandmarksDetection.createDetector(model,
+			detectorConfig);
+
+		if (!detector)
+		{
+			logger.error('Failed to create face detector.');
+
+			return;
+		}
+		this._faceDetectionTimer = setInterval(async () =>
+		{
+			const video = videoRef.current;
+
+			if (video)
+			{
+				logger.debug('Running face detection');
+
+				const predictions = await detector.estimateFaces(video);
+
+				predictions.forEach((prediction) =>
+				{
+					this.extractFace(videoRef, prediction, onFace);
+				});
+			}
+			else
+			{
+				clearInterval(this._faceDetectionTimer);
+				logger.error('No video element found. Cannot run face detection.');
+			}
+		}, 2000);
 	}
 
 	componentDidMount()
@@ -503,7 +588,9 @@ class VideoView extends React.PureComponent
 	{
 		clearInterval(this._videoResolutionTimer);
 
-		const { videoElement } = this.refs;
+		clearInterval(this._faceDetectionTimer);
+
+		const videoElement = this.videoRef.current;
 
 		if (videoElement)
 		{
@@ -523,7 +610,8 @@ class VideoView extends React.PureComponent
 	{
 		if (prevProps !== this.props)
 		{
-			const { videoTrack, audioTrack, showAudioAnalyzer } = this.props;
+			const { videoTrack, audioTrack, showAudioAnalyzer, isFaceDetecting, isMe }
+				= this.props;
 
 			this._setTracks(videoTrack);
 
@@ -535,6 +623,19 @@ class VideoView extends React.PureComponent
 			{
 				this.audioAnalyzer.delete();
 				this.audioAnalyzer = null;
+			}
+			if (isMe && (prevProps.isFaceDetecting !== isFaceDetecting))
+			{
+				if (isFaceDetecting)
+				{
+					logger.debug('Starting face detection intervall');
+					this.runDetection(this.props.onFace, this.videoRef);
+				}
+				else
+				{
+					logger.debug('Stopping face detection intervall');
+					clearInterval(this._faceDetectionTimer);
+				}
 			}
 		}
 	}
@@ -549,7 +650,7 @@ class VideoView extends React.PureComponent
 		clearInterval(this._videoResolutionTimer);
 		this._hideVideoResolution();
 
-		const { videoElement } = this.refs;
+		const videoElement = this.videoRef.current;
 
 		if (videoTrack)
 		{
@@ -596,7 +697,7 @@ class VideoView extends React.PureComponent
 		this._videoResolutionTimer = setInterval(() =>
 		{
 			const { videoWidth, videoHeight } = this.state;
-			const { videoElement } = this.refs;
+			const videoElement = this.videoRef.current;
 
 			// Don't re-render if nothing changed.
 			if (
@@ -640,6 +741,8 @@ VideoView.propTypes =
 	isScreen                       : PropTypes.bool,
 	isExtraVideo   	               : PropTypes.bool,
 	showQuality                    : PropTypes.bool,
+	isFaceDetecting                : PropTypes.bool,
+	hasEmotionPermission           : PropTypes.bool,
 	showAudioAnalyzer              : PropTypes.bool,
 	displayName                    : PropTypes.string,
 	showPeerInfo                   : PropTypes.bool,
@@ -650,6 +753,7 @@ VideoView.propTypes =
 	audioTrack                     : PropTypes.any,
 	consumerSpatialLayers          : PropTypes.number,
 	consumerTemporalLayers         : PropTypes.number,
+	onFace                         : PropTypes.func,
 	consumerCurrentSpatialLayer    : PropTypes.number,
 	consumerCurrentTemporalLayer   : PropTypes.number,
 	consumerPreferredSpatialLayer  : PropTypes.number,
