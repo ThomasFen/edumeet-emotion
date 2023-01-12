@@ -629,6 +629,18 @@ Setting 'play' to null disables the sound notification.
 				useNextVariants : true
 			}
 		}
+	},
+	localFaceDetection :
+	{
+		doc     : 'Whether to detect faces in browser or in backend.',
+		format  : 'Boolean',
+		default : false
+	},
+	faceDetectionTargetFps :
+	{
+		doc     : 'How many fps of faces should be sent to backend.',
+		format  : 'Number',
+		default : 5
 	}
 });
 

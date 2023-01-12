@@ -32,3 +32,11 @@ mediasoup:
     listenIps:
     - ip: "PUBLIC_IP_ADDRESS"
       announcedIp: ""
+
+bentoML:
+  enabled: true
+  URI: "http://0.0.0.0:3000/predict_async"
+
+emotion:
+  targetFps: 5
+  minFps: 1

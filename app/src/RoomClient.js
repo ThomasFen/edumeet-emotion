@@ -1200,13 +1200,11 @@ export default class RoomClient
 
 	async sendFace(face)
 	{
-		const { blob, prediction } = face;
-
-		logger.debug('sendFace() [blob:"%o"], [prediction: "%o"]', blob, prediction);
+		logger.debug('sendFace()');
 
 		try
 		{
-			logger.debug('TODO: send face to server [blob:"%o"], [prediction: "%o"]', blob, prediction);
+			await this.sendRequest('analyze-face', face);
 
 		}
 		catch (error)
@@ -1224,54 +1222,6 @@ export default class RoomClient
 		}
 	}
 
-	async startLocalFaceDetection()
-	{
-		logger.debug('startLocalFaceDetection()');
-
-		try
-		{
-			store.dispatch(
-				emotionActions.setFaceDetectionStatus(true));
-		}
-		catch (error)
-		{
-			logger.error('startLocalFaceDetection() [error:"%o"]', error);
-
-			store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : intl.formatMessage({
-						id             : 'emotion.startLocalFaceDetectionError',
-						defaultMessage : 'Unable to start local face detection'
-					})
-				}));
-		}
-	}
-
-	async stopLocalFaceDetection()
-	{
-		logger.debug('stopLocalFaceDetection()');
-
-		try
-		{
-			store.dispatch(
-				emotionActions.setFaceDetectionStatus(false));
-		}
-		catch (error)
-		{
-			logger.error('stopLocalFaceDetection() [error:"%o"]', error);
-
-			store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : intl.formatMessage({
-						id             : 'emotion.stopLocalFaceDetectionError',
-						defaultMessage : 'Unable to stop local face detection'
-					})
-				}));
-		}
-	}
-
 	async emotionStartAnalysis(peerId)
 	{
 		logger.debug('emotionStartAnalysis()', peerId);
@@ -1280,7 +1230,8 @@ export default class RoomClient
 		{
 			const hasHistory = peerId in store.getState().emotion.emotionHistory;
 
-			await this.sendRequest('start-emotion-analysis', { peerId });
+			await this.sendRequest('start-emotion-analysis',
+				{ peerId, localFaceDetection: config.localFaceDetection });
 
 			if (hasHistory)
 				store.dispatch(
@@ -1312,7 +1263,8 @@ export default class RoomClient
 
 		try
 		{
-			await this.sendRequest('stop-emotion-analysis', { peerId });
+			await this.sendRequest('stop-emotion-analysis',
+				{ peerId, localFaceDetection: config.localFaceDetection });
 
 			store.dispatch(
 				emotionActions.deleteEmotion(peerId));
@@ -3814,6 +3766,20 @@ export default class RoomClient
 							default:
 								break;
 						}
+						break;
+					}
+					case 'start-face-detection':
+					{
+						store.dispatch(
+							emotionActions.setFaceDetectionStatus(true));
+
+						break;
+					}
+					case 'stop-face-detection':
+					{
+						store.dispatch(
+							emotionActions.setFaceDetectionStatus(false));
+
 						break;
 					}
 

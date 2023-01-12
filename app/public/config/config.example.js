@@ -371,7 +371,10 @@ var config = {
 		'typography' : {
 			'useNextVariants' : true
 		}
-	}
+	},
+	// Whether to detect faces in browser or in backend.
+	localFaceDetection     : true,
+	faceDetectionTargetFps : 5
 };
 
 // Generated with: `yarn gen-config-docs` from app/src/config.ts

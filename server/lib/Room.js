@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const userRoles = require('./access/roles');
 const FFmpeg = require('./ffmpeg');
+import BentoML from './BentoML';
 const {
   getPort,
   releasePort
@@ -293,6 +294,8 @@ class Room extends EventEmitter
 		this._handleAudioLevelObservers();
 
 		this._tokens = new Map();
+
+		this._bentoml = new BentoML(roomId);
 	}
 
 	isLocked()
@@ -760,7 +763,7 @@ class Room extends EventEmitter
 			}, true);
 		});
 
-		peer.on('rawImage', ({ buffer }) =>
+		peer.on('rawImage', (face) =>
 		{
 			// Ensure the Peer is joined.
 			if (!peer.joined)
@@ -783,62 +786,8 @@ class Room extends EventEmitter
 
 			}
 
-
-			if (config.bentoML.enabled) {
-				const formData = new FormData();
-				const annotations = {
-				  userId: peer.id,
-				  conferenceId: this._roomId,
-				};
-
-				formData.append("annotations", JSON.stringify(annotations));
-				formData.append("image", buffer, "user.jpeg");
-				formData.submit(config.bentoML.URI, function (err, res) {
-				  if (err) {
-					logger.error('Sending rawImage to BentoML failed [error:"%o"]', err);
-				  } else {
-					const body = [];
-					res.on("data", (chunk) => body.push(chunk));
-					res.on("end", () => {
-					  try {
-						const resString = Buffer.concat(body).toString();
-						const reply = JSON.parse(resString);
-						const analysisLatency = Date.now() - preAnalysisTimestamp;
-
-						if (analysisLatency > peer.emotion.msPerFrame) {
-							// Switch to lower fps if latency is too high. Using 5 consecutive dropped results to protect against outliers.
-							if (peer.emotion.droppedResults === 5) {
-								logger.debug('Reached upper limit of allowed consecutive result drops because of high latency. Lowering fps ... [latency:"%o" ]', analysisLatency);
-
-								peer.emotion.msPerFrame = 1000/config.emotion.minFps;
-								peer.emotion.usingTargetFps = false;
-								peer.emotion.droppedResults = 0;
-							} else {
-								logger.debug('Dropping result because of high latency. [latency:"%o" ]', analysisLatency)
-
-								peer.emotion.droppedResults++;
-							}
-
-						  return;
-
-						} else {
-							logger.debug('BentoML analysis latency: %o', analysisLatency);
-
-							peer.emotion.droppedResults = 0;
-						}
-
-						if (reply.output.length > 0) {
-							logger.debug('BentoML reply containing results [#Emotions:"%o"]', reply.output.length);
-							// send emotion to all subscribers
-							socketio.getio().to(reply.emotions.userId).volatile.emit('emotion', JSON.stringify(reply.emotions));
-						}
-					  } catch (error) {
-						logger.error("BentoML error", error);
-					  }
-					});
-				  }
-				});
-			}
+			if (config.bentoML.enabled)
+				this._bentoml.analyze(peer, face);
 		});
 
 		peer.on('gotRole', ({ newRole }) =>
@@ -1952,12 +1901,15 @@ class Room extends EventEmitter
 				if(!this._hasPermission(peer, EMOTION_ANALYSIS))
 					throw new Error('peer not authorized');
 
-				const { peerId } = request.data;
+				const { peerId, localFaceDetection } = request.data;
 
 				const analyzePeer= this._peers[peerId];
 
 				if (!analyzePeer)
 					throw new Error(`peer with id "${peerId}" not found`);
+
+				logger.debug('startEmotionAnalysis() [peerId:"%s", analyzePeer:"%s", localFaceDetection:"%s"]',
+					peerId, analyzePeer.id, localFaceDetection);
 
 				// join room of the analyzed peer in order to receive results 
 				peer.socket.join(analyzePeer.id);
@@ -1970,8 +1922,10 @@ class Room extends EventEmitter
 					usingTargetFps: true,
 				  };
 				  
-
-				this._startEmotionAnalysis(analyzePeer);
+				if (localFaceDetection)
+					this._notification(analyzePeer.socket, 'start-face-detection');
+				else
+					this._rtpToImages(analyzePeer);
 
 				cb();
 
@@ -1983,7 +1937,7 @@ class Room extends EventEmitter
 				if(!this._hasPermission(peer, EMOTION_ANALYSIS))
 					throw new Error('peer not authorized');
 
-				const { peerId } = request.data;
+				const { peerId, localFaceDetection } = request.data;
 
 				const analyzePeer= this._peers[peerId];
 
@@ -1993,12 +1947,24 @@ class Room extends EventEmitter
 				// leave room of the analyzed peer in order to stop receiving results 
 				peer.socket.leave(analyzePeer.id);
 				
-				this._stopEmotionAnalysis(analyzePeer);
+				this._stopEmotionAnalysis(analyzePeer, localFaceDetection);
 
 				cb();
 
 				break;
 			}
+
+			case 'analyze-face':
+				{
+					const face = request.data;
+
+					peer.emit('rawImage', face);
+
+					cb();
+	
+					break;
+				}
+
 			default:
 			{
 				logger.error('unknown request.method "%s"', request.method);
@@ -2008,8 +1974,8 @@ class Room extends EventEmitter
 		}
 	}
 
-	 async _startEmotionAnalysis(peer) {
-		logger.debug('_startEmotionAnalysis() [peerId:%o]', peer.id);
+	 async _rtpToImages(peer) {
+		logger.debug('_rtpToImages() [peerId:%o]', peer.id);
 
 		
 		if (peer.process) {
@@ -2102,20 +2068,28 @@ class Room extends EventEmitter
 		};
 	  };
 
-	 async _stopEmotionAnalysis(peer) {
+	 async _stopEmotionAnalysis(peer, localFaceDetection) {
 		logger.debug('_stopEmotionAnalysis() [peerId:%o]', peer.id);
 
 		const hasSubscribers = socketio.getio().sockets.adapter.rooms[peer.id] !== undefined;   
 
+		if (hasSubscribers) {
+			logger.debug(`Peer with id ${peer.id} has subscribers. Not stopping emotion analysis`);
+
+			return;
+		}
+		if (localFaceDetection) {
+			logger.debug(`Notifying Peer with id ${peer.id} to stop local face detection`);
+
+			this._notification(peer.socket, 'stop-face-detection');
+			return;
+		}
 		if (!peer.process) {
 			logger.error(`Emotions of Peer with id ${peer.id} are not analyzed`);
+
 			return;
 		  }
 
-		if (hasSubscribers) {
-			logger.debug(`Peer with id ${peer.id} has subscribers`);
-			return;
-		}
 		peer.process.kill();
 		peer.process = undefined;
 

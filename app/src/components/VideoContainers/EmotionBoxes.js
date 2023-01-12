@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Logger from '../../Logger';
+import { config } from '../../config';
 
 export default function EmotionBoxes({
 	peerId
@@ -49,45 +50,69 @@ export default function EmotionBoxes({
 
 							return;
 						}
-						const { width, height } = canvas.current;
-						const longSide = Math.max(width, height);
-						const shortSide = Math.min(width, height);
-						const isWide = width === longSide;
-						const wholePadding = longSide - shortSide;
-						const sidePadding = wholePadding / 2;
-
-						let topLeftY, bottomRightY, topLeftX, bottomRightX;
-
-						if (isWide)
+						else if (config.localFaceDetection)
 						{
-							topLeftY = (canvas.current.height + wholePadding) * currentBox[0]
-								- sidePadding;
-							bottomRightY = (canvas.current.height + wholePadding) * currentBox[2]
-								- sidePadding;
-							topLeftX = canvas.current.width * currentBox[1];
-							bottomRightX = canvas.current.width * currentBox[3];
+							const [ topLeftY, topLeftX, bottomRightY, bottomRightX ]
+								= currentBox.map((c, i) =>
+								{
+									return i % 2 === 0 ? c * canvas.current.height :
+										c * canvas.current.width;
+								});
+							const [ boxWidth, boxHeight ] =
+								[ bottomRightX - topLeftX, bottomRightY - topLeftY ];
+
+							ctx.beginPath();
+							ctx.textBaseline = 'top';
+							ctx.font = '35pt bold arial';
+							ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
+							ctx.fillStyle = 'green';
+							ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
+							ctx.strokeStyle = 'green';
+							ctx.stroke();
 						}
 						else
 						{
-							topLeftX = (canvas.current.height + wholePadding) * currentBox[1]
-								- sidePadding;
-							bottomRightX = (canvas.current.height + wholePadding) * currentBox[3]
-								- sidePadding;
-							topLeftY = canvas.current.height * currentBox[0];
-							bottomRightY = canvas.current.height * currentBox[2];
+							const { width, height } = canvas.current;
+							const longSide = Math.max(width, height);
+							const shortSide = Math.min(width, height);
+							const isWide = width === longSide;
+							const wholePadding = longSide - shortSide;
+							const sidePadding = wholePadding / 2;
+
+							let topLeftY, bottomRightY, topLeftX, bottomRightX;
+
+							if (isWide)
+							{
+								topLeftY = (canvas.current.height + wholePadding) * currentBox[0]
+									- sidePadding;
+								bottomRightY = (canvas.current.height + wholePadding) * currentBox[2]
+									- sidePadding;
+								topLeftX = canvas.current.width * currentBox[1];
+								bottomRightX = canvas.current.width * currentBox[3];
+							}
+							else
+							{
+								topLeftX = (canvas.current.height + wholePadding) * currentBox[1]
+									- sidePadding;
+								bottomRightX = (canvas.current.height + wholePadding) * currentBox[3]
+									- sidePadding;
+								topLeftY = canvas.current.height * currentBox[0];
+								bottomRightY = canvas.current.height * currentBox[2];
+							}
+
+							const boxWidth = bottomRightX - topLeftX;
+							const boxHeight = bottomRightY - topLeftY;
+
+							ctx.beginPath();
+							ctx.textBaseline = 'top';
+							ctx.font = '35pt bold arial';
+							ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
+							ctx.fillStyle = 'red';
+							ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
+							ctx.strokeStyle = 'red';
+							ctx.stroke();
 						}
 
-						const boxWidth = bottomRightX - topLeftX;
-						const boxHeight = bottomRightY - topLeftY;
-
-						ctx.beginPath();
-						ctx.textBaseline = 'top';
-						ctx.font = '35pt bold arial';
-						ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
-						ctx.fillStyle = 'red';
-						ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
-						ctx.strokeStyle = 'red';
-						ctx.stroke();
 					}
 
 				}
@@ -109,7 +134,8 @@ export default function EmotionBoxes({
 				left      : 0,
 				right     : 0,
 				width     : '100%',
-				height    : '100%'			}}
+				height    : '100%'
+			}}
 			ref={canvas}
 		/>
 	);

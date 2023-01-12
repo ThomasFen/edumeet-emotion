@@ -14,6 +14,7 @@ import { AudioAnalyzer } from './AudioAnalyzer';
 import EmotionBoxes from './EmotionBoxes';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import * as faceMesh from '@mediapipe/face_mesh';
+import { config } from '../../config';
 import '@tensorflow/tfjs-core';
 // Register WebGL backend.
 import '@tensorflow/tfjs-backend-webgl';
@@ -210,7 +211,11 @@ class VideoView extends React.PureComponent
 		// Periodic timer for face detection.
 		this._faceDetectionTimer = null;
 
+		this._detector = null;
+
 		this.videoRef = React.createRef();
+
+		this._sendFps = 1000 / config.faceDetectionTargetFps;
 
 	}
 
@@ -494,7 +499,7 @@ class VideoView extends React.PureComponent
 		);
 	}
 
-	extractFace(videoRef, prediction, cb)
+	_extractFace(videoRef, prediction, cb)
 	{
 		const video = videoRef.current;
 
@@ -504,38 +509,56 @@ class VideoView extends React.PureComponent
 
 			return;
 		}
+
 		logger.debug('Extracting face from video element');
 
-		const x = prediction.box.xMin;
-		const y = prediction.box.yMin;
-		const width = prediction.box.width;
-		const height = prediction.box.height;
+		const { xMin, yMin, xMax, yMax, width, height } = prediction.box;
 		const canvas = document.createElement('canvas');
+		const { videoWidth, videoHeight } = video;
 
 		canvas.width = width;
 		canvas.height = height;
 
 		const ctx = canvas.getContext('2d');
 
-		ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
+		ctx.drawImage(video, xMin, yMin, width, height, 0, 0, width, height);
 
 		canvas.toBlob((blob) =>
 		{
 			if (blob)
-				cb({ blob, prediction });
+			{
+				const relativeBox = [ yMin/videoHeight, xMin/videoWidth,
+					yMax/videoHeight, xMax/videoWidth ];
+
+				cb({ buffer: blob, relativeBox });
+			}
+
 		}, 'image/jpeg', 1);
 
 	}
 
-	async runDetection(onFace, videoRef)
+	async _getDetector()
 	{
+		if (this._detector)
+			return this._detector;
+
 		const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
 		const detectorConfig = {
 			runtime      : 'mediapipe', // or 'tfjs'
 			solutionPath : `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}`
 		};
-		const detector = await faceLandmarksDetection.createDetector(model,
+
+		this._detector = await faceLandmarksDetection.createDetector(model,
 			detectorConfig);
+
+		return this._detector;
+	}
+
+	async _runDetection(onFace, videoRef)
+	{
+		const detector = await this._getDetector();
+
+		logger.debug('detector:', detector);
 
 		if (!detector)
 		{
@@ -555,7 +578,7 @@ class VideoView extends React.PureComponent
 
 				predictions.forEach((prediction) =>
 				{
-					this.extractFace(videoRef, prediction, onFace);
+					this._extractFace(videoRef, prediction, onFace);
 				});
 			}
 			else
@@ -563,7 +586,7 @@ class VideoView extends React.PureComponent
 				clearInterval(this._faceDetectionTimer);
 				logger.error('No video element found. Cannot run face detection.');
 			}
-		}, 2000);
+		}, this._sendFps);
 	}
 
 	componentDidMount()
@@ -629,7 +652,7 @@ class VideoView extends React.PureComponent
 				if (isFaceDetecting)
 				{
 					logger.debug('Starting face detection intervall');
-					this.runDetection(this.props.onFace, this.videoRef);
+					this._runDetection(this.props.onFace, this.videoRef);
 				}
 				else
 				{
