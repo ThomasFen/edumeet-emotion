@@ -800,6 +800,7 @@ const Peer = (props) =>
 					<VideoView
 						localRecordingState={localRecordingState}
 						recordingConsents={recordingConsents}
+						hasEmotionPermission={hasEmotionPermission}
 						showQuality
 						advancedMode={advancedMode}
 						peer={peer}

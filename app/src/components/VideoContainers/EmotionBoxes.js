@@ -4,7 +4,7 @@ import Logger from '../../Logger';
 import { config } from '../../config';
 
 export default function EmotionBoxes({
-	peerId
+	peerId, mirror
 })
 {
 	const canvas = useRef(null);
@@ -37,6 +37,7 @@ export default function EmotionBoxes({
 				{
 					canvas.current.height = canvas.current.offsetHeight;
 					canvas.current.width = canvas.current.offsetWidth;
+					const { width, height } = canvas.current;
 
 					logger._debug('Canvas size:', canvas.current.width, canvas.current.height);
 
@@ -44,6 +45,8 @@ export default function EmotionBoxes({
 
 					if (ctx)
 					{
+						let topLeftY, bottomRightY, topLeftX, bottomRightX;
+
 						if (!currentBox)
 						{
 							ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
@@ -52,34 +55,20 @@ export default function EmotionBoxes({
 						}
 						else if (config.localFaceDetection)
 						{
-							const [ topLeftY, topLeftX, bottomRightY, bottomRightX ]
+							[ topLeftY, topLeftX, bottomRightY, bottomRightX ]
 								= currentBox.map((c, i) =>
 								{
 									return i % 2 === 0 ? c * canvas.current.height :
 										c * canvas.current.width;
 								});
-							const [ boxWidth, boxHeight ] =
-								[ bottomRightX - topLeftX, bottomRightY - topLeftY ];
-
-							ctx.beginPath();
-							ctx.textBaseline = 'top';
-							ctx.font = '35pt bold arial';
-							ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
-							ctx.fillStyle = 'green';
-							ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
-							ctx.strokeStyle = 'green';
-							ctx.stroke();
 						}
 						else
 						{
-							const { width, height } = canvas.current;
 							const longSide = Math.max(width, height);
 							const shortSide = Math.min(width, height);
 							const isWide = width === longSide;
 							const wholePadding = longSide - shortSide;
 							const sidePadding = wholePadding / 2;
-
-							let topLeftY, bottomRightY, topLeftX, bottomRightX;
 
 							if (isWide)
 							{
@@ -89,6 +78,7 @@ export default function EmotionBoxes({
 									- sidePadding;
 								topLeftX = canvas.current.width * currentBox[1];
 								bottomRightX = canvas.current.width * currentBox[3];
+
 							}
 							else
 							{
@@ -99,20 +89,25 @@ export default function EmotionBoxes({
 								topLeftY = canvas.current.height * currentBox[0];
 								bottomRightY = canvas.current.height * currentBox[2];
 							}
-
-							const boxWidth = bottomRightX - topLeftX;
-							const boxHeight = bottomRightY - topLeftY;
-
-							ctx.beginPath();
-							ctx.textBaseline = 'top';
-							ctx.font = '35pt bold arial';
-							ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
-							ctx.fillStyle = 'red';
-							ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
-							ctx.strokeStyle = 'red';
-							ctx.stroke();
 						}
 
+						if (mirror)
+						{
+							topLeftX = width - topLeftX;
+							bottomRightX = width - bottomRightX;
+						}
+
+						const [ boxWidth, boxHeight ] = [ bottomRightX - topLeftX,
+							bottomRightY - topLeftY ];
+
+						ctx.beginPath();
+						ctx.textBaseline = 'top';
+						ctx.font = '35pt bold arial';
+						ctx.rect(topLeftX, topLeftY, boxWidth, boxHeight);
+						ctx.fillStyle = 'red';
+						ctx.fillText(currentEmotion.toUpperCase(), topLeftX, bottomRightY);
+						ctx.strokeStyle = 'red';
+						ctx.stroke();
 					}
 
 				}

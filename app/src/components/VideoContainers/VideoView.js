@@ -492,7 +492,11 @@ class VideoView extends React.PureComponent
 					controls={false}
 				/>
 
-				{ hasEmotionPermission && <EmotionBoxes peerId={peer.id}/>}
+				{ hasEmotionPermission &&
+					<EmotionBoxes peerId={peer.id}
+						mirror={isMirrored && isMe}
+					/>
+				}
 
 				{children}
 			</div>
