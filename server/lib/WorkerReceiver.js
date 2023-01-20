@@ -32,12 +32,7 @@ class WorkerSocketServer {
       });
       socket2.on("send_result_to_server", (msg) => {
         console.log("received worker result");
-        //now_time = Date.now();
-        //for (const patientResult of msg["data"]) {
-        //  patientResult["img_server_roundtrip"] = now_time - patientResult["img_server_roundtrip_start"];
-        //}
         for (const patientResult of msg["data"]) {
-          //physicians.to(patientResult.usr).emit("emotion", patientResult);
           socketio
             .getio()
             .to(patientResult.usr)
@@ -51,11 +46,10 @@ class WorkerSocketServer {
       worker.emit("heartbeat", "this is worker heartbeat");
     }, 3000);
 
-    http2.listen(3000, function () {
-      console.log("listening on *:3000");
+    http2.listen(8010, function () {
+      console.log("listening on *:8010");
     });
   }
-
 }
 
 module.exports = WorkerSocketServer;

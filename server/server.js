@@ -2,6 +2,7 @@
 
 process.title = 'edumeet-server';
 
+
 import Logger from './lib/logger/Logger';
 const Room = require('./lib/Room');
 const Peer = require('./lib/Peer');
@@ -16,11 +17,11 @@ const promExporter = require('./lib/stats/promExporter');
 
 const WorkerSocketServer = require('./lib/WorkerReceiver');
 let workerSocketServer = new WorkerSocketServer();
-
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
+
 
 if (process.versions.node.split('.')[0] < 15)
 {
@@ -178,8 +179,6 @@ async function run()
 
 		// Run WebSocketServer.
 		await runWebSocketServer();
-		
-		// Let Emotion worker pods connect direcrtly
 		await workerSocketServer.runWebSocketServerWorker();
 
 		// eslint-disable-next-line no-unused-vars
@@ -726,6 +725,7 @@ function isPathAlreadyTaken(actualUrl)
 	return false;
 }
 
+
 /**
  * Create a WebSocketServer to allow WebSocket connections from browsers.
  */
@@ -737,6 +737,7 @@ async function runWebSocketServer()
 	io.use(
 		sharedSession(session, sharedCookieParser, {})
 	);
+
 
 	// Handle connections from clients.
 	io.on('connection', (socket) =>
