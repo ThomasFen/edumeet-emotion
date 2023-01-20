@@ -2,8 +2,8 @@ const { config } = require("./config/config");
 import Logger from "./logger/Logger";
 const logger = new Logger("Celery");
 
-CELERY_BROKER_URL = "amqp://user:mypass@rabbitmq:5672";
-CELERY_RESULT_BACKEND = "redis://myredis-headless:6379/0";
+const CELERY_BROKER_URL = "amqp://user:mypass@rabbitmq:5672";
+const CELERY_RESULT_BACKEND = "redis://myredis-headless:6379/0";
 
 class Celery {
   constructor(roomId) {
