@@ -55,6 +55,7 @@
 		"prom-client": "^13.1.0",
 		"redis": "v3",
 		"socket.io": "^2.4.0",
+		"sockio4": "npm:socket.io@^4.5.4",
 		"spdy": "^4.0.2",
 		"toml": "^3.0.0",
 		"uuid": "^7.0.2",

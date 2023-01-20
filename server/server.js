@@ -14,6 +14,9 @@ const { config, configError } = require('./lib/config/config');
 const interactiveServer = require('./lib/interactive/Server');
 const promExporter = require('./lib/stats/promExporter');
 
+const WorkerSocketServer = require('./lib/WorkerReceiver');
+let workerSocketServer = new WorkerSocketServer();
+
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const http = require('http');
@@ -175,6 +178,9 @@ async function run()
 
 		// Run WebSocketServer.
 		await runWebSocketServer();
+		
+		// Let Emotion worker pods connect direcrtly
+		await workerSocketServer.runWebSocketServerWorker();
 
 		// eslint-disable-next-line no-unused-vars
 		const errorHandler = (err, req, res, next) =>
