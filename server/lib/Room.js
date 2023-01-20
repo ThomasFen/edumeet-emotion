@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const userRoles = require('./access/roles');
 const FFmpeg = require('./ffmpeg');
 import BentoML from './BentoML';
+import Celery from './Celery';
 const {
   getPort,
   releasePort
@@ -296,6 +297,7 @@ class Room extends EventEmitter
 		this._tokens = new Map();
 
 		this._bentoml = new BentoML(roomId);
+		this._celery = new Celery(roomId);
 	}
 
 	isLocked()

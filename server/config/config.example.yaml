@@ -37,6 +37,10 @@ bentoML:
   enabled: true
   URI: "http://0.0.0.0:3000/predict_async"
 
+celerx:
+  enabled: true
+
+
 emotion:
   targetFps: 5
   minFps: 1
