@@ -117,7 +117,7 @@ export default function EmotionBoxes({
 		{
 			logger.error('Error during drawing Face Bounding Boxes! error:%O', error);
 		}
-	}, [ canvas, currentBox, logger, currentEmotion ]);
+	}, [ canvas, currentBox, logger, currentEmotion, mirror ]);
 
 	return (
 		<canvas

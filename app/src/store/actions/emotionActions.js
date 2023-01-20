@@ -18,10 +18,10 @@ export const restartEmotion = (peerId) =>
 		payload : { peerId }
 	});
 
-export const addEmotion = (peerId, emotion, box, timestamp) =>
+export const addEmotion = (peerId, emotion, box, rawData) =>
 	({
 		type    : ADD_EMOTION,
-		payload : { peerId, emotion, box, timestamp }
+		payload : { peerId, emotion, box, rawData }
 	});
 
 export const deleteEmotion = (peerId) =>

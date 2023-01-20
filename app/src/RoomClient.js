@@ -3809,11 +3809,22 @@ export default class RoomClient
 		this._signalingSocket.on('emotion', function(msg)
 		{
 			const emotion = JSON.parse(msg);
-			const timestamp = Date.now();
+
+			let rawData = emotion.emotions[0].raw;
+
+			rawData = Object.keys(rawData).reduce((acc, key) =>
+			{
+				acc[key] = {
+					value : rawData[key].value,
+					date  : new Date(rawData[key].date)
+				};
+
+				return acc;
+			}, {});
 
 			store.dispatch(
 				emotionActions.addEmotion(emotion.userId,
-					emotion.emotions[0].dominantEmotion, emotion.boxes[0], timestamp)
+					emotion.emotions[0].dominantEmotion, emotion.boxes[0], rawData)
 			);
 		});
 	}
