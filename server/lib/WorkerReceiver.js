@@ -33,10 +33,10 @@ class WorkerSocketServer {
       socket2.on("send_result_to_server", (msg) => {
         console.log("received worker result");
         for (const patientResult of msg["data"]) {
-          let result = JSON.stringify(patientResult)
-
+          //let result = JSON.stringify(patientResult)
+  
           // TODO REFACTOR THIS!!
-          const final_result = { result, boxes: [result["relativeBox"]] }
+          const final_result = { patientResult, "boxes": [patientResult["relativeBox"]] }
 
 
 
