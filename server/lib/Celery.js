@@ -18,7 +18,7 @@ class Celery {
   }
 
   makeid(length) {
-    var result = "";
+    let result = "";
     var characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     var charactersLength = characters.length;
@@ -37,7 +37,7 @@ class Celery {
       conferenceId: this._roomId,
     };
     try {
-      msg_id = this.makeid(20);
+      let msg_id = this.makeid(20);
       console.log("msg_id:", msg_id);
       request = {
         usr: peer.id,
