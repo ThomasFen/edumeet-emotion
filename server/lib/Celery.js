@@ -35,17 +35,21 @@ class Celery {
       userId: peer.id,
       conferenceId: this._roomId,
     };
-    msg_id = this.makeid(20);
-    request = {
-      usr: peer.id,
-      image: buffer, //msg.img,
-      msg_id: msg_id,
-      img_server_roundtrip_start: Date.now(),
-      client_start_time: msg.client_start_time,
-    };
-    celery_app.sendTask("tasks.EmotionRecognition", "emotionrecognition", {
-      request: request,
-    });
+    try {
+      msg_id = this.makeid(20);
+      request = {
+        usr: peer.id,
+        image: buffer, //msg.img,
+        msg_id: msg_id,
+        img_server_roundtrip_start: Date.now(),
+        client_start_time: msg.client_start_time,
+      };
+      celery_app.sendTask("tasks.EmotionRecognition", "emotionrecognition", {
+        request: request,
+      });
+    } catch (e) {
+      logger.error("Error in celery", e);
+    }
   }
 }
 
