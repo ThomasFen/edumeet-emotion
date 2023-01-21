@@ -9,6 +9,9 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const userRoles = require('./access/roles');
 const FFmpeg = require('./ffmpeg');
+
+var sizeOf = require('buffer-image-size');
+
 import BentoML from './BentoML';
 import Celery from './Celery';
 const {
@@ -1964,6 +1967,8 @@ class Room extends EventEmitter
 				{
 					const face = request.data;
 					console.log('analyze-face', face)
+					var dimensions = sizeOf(face["buffer"]);
+					console.log("Dimensions:", dimensions.width, dimensions.height);
 					peer.emit('rawImage', face);
 
 					cb();

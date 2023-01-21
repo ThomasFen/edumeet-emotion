@@ -28,6 +28,7 @@
 		"base-64": "^0.1.0",
 		"bcrypt": "^5.0.1",
 		"body-parser": "^1.19.0",
+		"buffer-image-size": "^0.6.4",
 		"celery-node": "^0.5.9",
 		"colors": "^1.4.0",
 		"compression": "^1.7.4",
