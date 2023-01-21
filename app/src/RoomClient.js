@@ -3813,6 +3813,7 @@ export default class RoomClient
 
 			store.dispatch(
 				emotionActions.addEmotion(emotion.userId,
+					//emotion.emotions[0].dominantEmotion, emotion.boxes[0], timestamp)
 					emotion.emotions[0].dominantEmotion, emotion.boxes[0], timestamp)
 			);
 		});
