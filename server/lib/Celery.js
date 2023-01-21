@@ -25,6 +25,7 @@ class Celery {
     for (var i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
+    console.log("return msgid:", result);
     return result;
   }
 
@@ -37,6 +38,7 @@ class Celery {
     };
     try {
       msg_id = this.makeid(20);
+      console.log("msg_id:", msg_id);
       request = {
         usr: peer.id,
         image: buffer, //msg.img,
@@ -49,7 +51,6 @@ class Celery {
       });
     } catch (e) {
       logger.error("Error in celery", e);
-      console.log("C Error in celery", e);
     }
   }
 }
