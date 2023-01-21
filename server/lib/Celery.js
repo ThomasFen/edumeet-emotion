@@ -32,6 +32,7 @@ class Celery {
   analyze(peer, { buffer, relativeBox }) {
     const preAnalysisTimestamp = Date.now();
     //const formData = new FormData();
+    console.log("buffer:", buffer);
     const annotations = {
       userId: peer.id,
       conferenceId: this._roomId,
