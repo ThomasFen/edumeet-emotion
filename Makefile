@@ -5,4 +5,4 @@ UpdateAndReset:
 	@echo "Done."
 	@mv server/config/config_ibm.yaml server/config/config.yaml
 	@cd server && yarn build
-	@echo cd server && DEBUG=${DEBUG:='*mediasoup* *INFO* *WARN* *ERROR*'} INTERACTIVE=${INTERACTIVE:='true'} yarn start server.js
+	@cd server && DEBUG=${DEBUG:='*mediasoup* *INFO* *WARN* *ERROR*'} INTERACTIVE=${INTERACTIVE:='true'} yarn start server.js
