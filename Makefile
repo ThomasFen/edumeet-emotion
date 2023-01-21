@@ -4,4 +4,4 @@ UpdateAndReset:
 	@git pull
 	@echo "Done."
 	@mv server/config/config_ibm.yaml server/config/config.yaml
-	@echo cd server && yarn build
+	@cd server && yarn build

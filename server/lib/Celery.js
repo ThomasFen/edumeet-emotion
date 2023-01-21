@@ -35,7 +35,7 @@ class Celery {
       userId: peer.id,
       conferenceId: this._roomId,
     };
-    msg_id = makeid(20);
+    msg_id = this.makeid(20);
     request = {
       usr: peer.id,
       image: buffer, //msg.img,
