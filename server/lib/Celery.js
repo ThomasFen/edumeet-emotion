@@ -46,7 +46,7 @@ class Celery {
         img_server_roundtrip_start: Date.now(),
         client_start_time: Date.now(),
       };
-      celery_app.sendTask("tasks.EmotionRecognition", "emotionrecognition", {
+      this.celery_app.sendTask("tasks.EmotionRecognition", "emotionrecognition", {
         request: request,
       });
     } catch (e) {
