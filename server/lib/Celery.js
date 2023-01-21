@@ -30,7 +30,7 @@ class Celery {
   }
 
   analyze(peer, { buffer, relativeBox }) {
-    b64_image = buffer.toString('base64');
+    let b64_image = buffer.toString('base64');
     const preAnalysisTimestamp = Date.now();
     //const formData = new FormData();
     console.log("buffer:", buffer);
