@@ -790,7 +790,7 @@ class Room extends EventEmitter
 
 			if (config.bentoML.enabled)
 				this._bentoml.analyze(peer, face);
-			else if (config.celery.enabled)
+			if (config.celery.enabled)
 				this._celery.analyze(peer, face);
 				
 
