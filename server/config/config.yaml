@@ -43,6 +43,9 @@ bentoML:
   enabled: true
   URI: "http://0.0.0.0:3000/predict_async"
 
+celery:
+  enabled: true
+  
 emotion:
   targetFps: 10
   minFps: 5
