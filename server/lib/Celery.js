@@ -6,7 +6,7 @@ const CELERY_BROKER_URL = "amqp://user:mypass@10.243.64.9:31001";
 //const CELERY_BROKER_URL = "amqp://user:mypass@rabbitmq:5672";
 const CELERY_RESULT_BACKEND = "redis://10.243.64.9:6379/0";
 //const CELERY_RESULT_BACKEND = "redis://myredis-headless:6379/0";
-
+const celery = require("celery-node");
 class Celery {
   constructor(roomId) {
     this._roomId = roomId;
