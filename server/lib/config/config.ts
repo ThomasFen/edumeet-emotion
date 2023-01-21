@@ -275,6 +275,7 @@ const configSchema = convict({
 			format  : 'Boolean',
 			default : false
 		},
+	},
 	// Emotion setting
 	emotion : 
 	{
