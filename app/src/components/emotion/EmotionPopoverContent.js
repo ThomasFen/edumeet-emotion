@@ -66,41 +66,51 @@ export default function EmotionPopoverContent({
 			]
 	);
 
+	function sumValues(array)
+	{
+		return array.reduce((acc, obj) =>
+		{
+			acc += obj.value;
+
+			return acc;
+		}, 0);
+	}
+
 	const EmotionIcon = emotionToIcon(currentEmotion);
 
 	// data
 	const data = [
 		{
 			emotion  : EMOTION_ANGER_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_ANGER].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_ANGER]) : 0
 		},
 		{
 			emotion  : EMOTION_CONTEMPT_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_CONTEMPT].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_CONTEMPT]) : 0
 		},
 		{
 			emotion  : EMOTION_DISGUST_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_DISGUST].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_DISGUST]) : 0
 		},
 		{
 			emotion  : EMOTION_FEAR_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_FEAR].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_FEAR]) : 0
 		},
 		{
 			emotion  : EMOTION_HAPPY_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_HAPPY].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_HAPPY]) : 0
 		},
 		{
 			emotion  : EMOTION_NEUTRAL_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_NEUTRAL].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_NEUTRAL]) : 0
 		},
 		{
 			emotion  : EMOTION_SAD_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_SAD].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_SAD]) : 0
 		},
 		{
 			emotion  : EMOTION_SURPRISE_SHORT,
-			duration : peerEmotionHistory ? peerEmotionHistory[EMOTION_SURPRISE].length : 0
+			duration : peerEmotionHistory ? sumValues(peerEmotionHistory[EMOTION_SURPRISE]) : 0
 		}
 	];
 

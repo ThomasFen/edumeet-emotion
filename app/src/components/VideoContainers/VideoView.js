@@ -11,7 +11,9 @@ import SignalCellular1BarIcon from '@material-ui/icons/SignalCellular1Bar';
 import SignalCellular2BarIcon from '@material-ui/icons/SignalCellular2Bar';
 import SignalCellular3BarIcon from '@material-ui/icons/SignalCellular3Bar';
 import { AudioAnalyzer } from './AudioAnalyzer';
-import EmotionBoxes from './EmotionBoxes';
+import ParentSize from '@visx/responsive/lib/components/ParentSize';
+import EmotionBoxes from '../emotion/EmotionBoxes';
+import EmotionHistoryChart from '../emotion/EmotionHistoryChart';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import * as faceMesh from '@mediapipe/face_mesh';
 import { config } from '../../config';
@@ -24,80 +26,80 @@ const logger = new Logger('VideoView');
 const styles = (theme) =>
 	({
 		root :
-		{
-			position      : 'relative',
-			flex          : '100 100 auto',
-			height        : '100%',
-			width         : '100%',
-			display       : 'flex',
-			flexDirection : 'column',
-			overflow      : 'hidden'
-		},
+	{
+		position      : 'relative',
+		flex          : '100 100 auto',
+		height        : '100%',
+		width         : '100%',
+		display       : 'flex',
+		flexDirection : 'column',
+		overflow      : 'hidden'
+	},
 
 		video :
+	{
+		flex               : '100 100 auto',
+		height             : '100%',
+		width              : '100%',
+		objectFit          : 'contain',
+		userSelect         : 'none',
+		transitionProperty : 'opacity',
+		transitionDuration : '.15s',
+		backgroundColor    : 'var(--peer-video-bg-color)',
+		'&.isMirrored'     :
 		{
-			flex               : '100 100 auto',
-			height             : '100%',
-			width              : '100%',
-			objectFit          : 'contain',
-			userSelect         : 'none',
-			transitionProperty : 'opacity',
-			transitionDuration : '.15s',
-			backgroundColor    : 'var(--peer-video-bg-color)',
-			'&.isMirrored'     :
-			{
-				transform : 'scaleX(-1)'
-			},
-			'&.hidden' :
-			{
-				opacity            : 0,
-				transitionDuration : '0s'
-			},
-			'&.loading' :
-			{
-				filter : 'blur(5px)'
-			},
-			'&.contain' :
-			{
-				objectFit       : 'contain',
-				backgroundColor : 'rgba(0, 0, 0, 1)'
-			}
+			transform : 'scaleX(-1)'
 		},
+		'&.hidden' :
+		{
+			opacity            : 0,
+			transitionDuration : '0s'
+		},
+		'&.loading' :
+		{
+			filter : 'blur(5px)'
+		},
+		'&.contain' :
+		{
+			objectFit       : 'contain',
+			backgroundColor : 'rgba(0, 0, 0, 1)'
+		}
+	},
 		info :
-		{
-			width          : '100%',
-			height         : '100%',
-			padding        : theme.spacing(1),
-			position       : 'absolute',
-			zIndex         : 10,
-			display        : 'flex',
-			flexDirection  : 'column',
-			justifyContent : 'space-between'
-		},
+	{
+		width          : '100%',
+		height         : '100%',
+		padding        : theme.spacing(1),
+		position       : 'absolute',
+		zIndex         : 10,
+		display        : 'flex',
+		flexDirection  : 'column',
+		justifyContent : 'space-between'
+	},
 		media :
-		{
-			display            : 'flex',
-			transitionProperty : 'opacity',
-			transitionDuration : '.15s',
-			alignItems         : 'flex-start'
-		},
+	{
+		display            : 'flex',
+		transitionProperty : 'opacity',
+		transitionDuration : '.15s',
+		alignItems         : 'flex-start'
+	},
 		box :
+	{
+		padding      : theme.spacing(0.5),
+		borderRadius : 2,
+		userSelect   : 'none',
+		margin       : 0,
+		color        : 'rgba(255, 255, 255, 0.7)',
+		fontSize     : '0.8em',
+
+		'&.left' :
 		{
-			padding      : theme.spacing(0.5),
-			borderRadius : 2,
-			userSelect   : 'none',
-			margin       : 0,
-			color        : 'rgba(255, 255, 255, 0.7)',
-			fontSize     : '0.8em',
+			backgroundColor : 'rgba(0, 0, 0, 0.25)',
+			display         : 'grid',
+			gap             : '1px 5px',
 
-			'&.left' :
-				{
-					backgroundColor : 'rgba(0, 0, 0, 0.25)',
-					display         : 'grid',
-					gap             : '1px 5px',
-
-					// eslint-disable-next-line
-					gridTemplateAreas : '\
+			// eslint-disable-next-line
+			gridTemplateAreas: '\
 					"AcodL		Acod	Acod	Acod	Acod" \
 					"VcodL		Vcod	Vcod	Vcod	Vcod" \
 					"ResL		Res		Res		Res		Res" \
@@ -109,77 +111,77 @@ const styles = (theme) =>
 					"STLcurrL	STLcurr	STLcurr STLcurr STLcurr" \
 					"STLprefL	STLpref STLpref STLpref STLpref"',
 
-					'& .AcodL'    : { gridArea: 'AcodL' },
-					'& .Acod'     : { gridArea: 'Acod' },
-					'& .VcodL'    : { gridArea: 'VcodL' },
-					'& .Vcod'     : { gridArea: 'Vcod' },
-					'& .ResL'     : { gridArea: 'ResL' },
-					'& .Res'      : { gridArea: 'Res' },
-					'& .VPortL'   : { gridArea: 'VPortL' },
-					'& .VPort'    : { gridArea: 'VPort' },
-					'& .RecvL'    : { gridArea: 'RecvL' },
-					'& .RecvBps'  : { gridArea: 'RecvBps', justifySelf: 'flex-end' },
-					'& .RecvSum'  : { gridArea: 'RecvSum', justifySelf: 'flex-end' },
-					'& .SendL'    : { gridArea: 'SendL' },
-					'& .SendBps'  : { gridArea: 'SendBps', justifySelf: 'flex-end' },
-					'& .SendSum'  : { gridArea: 'SendSum', justifySelf: 'flex-end' },
-					'& .IPlocL'   : { gridArea: 'IPlocL' },
-					'& .IPloc'    : { gridArea: 'IPloc' },
-					'& .IPsrvL'   : { gridArea: 'IPsrvL' },
-					'& .IPsrv'    : { gridArea: 'IPsrv' },
-					'& .STLcurrL' : { gridArea: 'STLcurrL' },
-					'& .STLcurr'  : { gridArea: 'STLcurr' },
-					'& .STLprefL' : { gridArea: 'STLprefL' },
-					'& .STLpref'  : { gridArea: 'STLpref' }
+			'& .AcodL'    : { gridArea: 'AcodL' },
+			'& .Acod'     : { gridArea: 'Acod' },
+			'& .VcodL'    : { gridArea: 'VcodL' },
+			'& .Vcod'     : { gridArea: 'Vcod' },
+			'& .ResL'     : { gridArea: 'ResL' },
+			'& .Res'      : { gridArea: 'Res' },
+			'& .VPortL'   : { gridArea: 'VPortL' },
+			'& .VPort'    : { gridArea: 'VPort' },
+			'& .RecvL'    : { gridArea: 'RecvL' },
+			'& .RecvBps'  : { gridArea: 'RecvBps', justifySelf: 'flex-end' },
+			'& .RecvSum'  : { gridArea: 'RecvSum', justifySelf: 'flex-end' },
+			'& .SendL'    : { gridArea: 'SendL' },
+			'& .SendBps'  : { gridArea: 'SendBps', justifySelf: 'flex-end' },
+			'& .SendSum'  : { gridArea: 'SendSum', justifySelf: 'flex-end' },
+			'& .IPlocL'   : { gridArea: 'IPlocL' },
+			'& .IPloc'    : { gridArea: 'IPloc' },
+			'& .IPsrvL'   : { gridArea: 'IPsrvL' },
+			'& .IPsrv'    : { gridArea: 'IPsrv' },
+			'& .STLcurrL' : { gridArea: 'STLcurrL' },
+			'& .STLcurr'  : { gridArea: 'STLcurr' },
+			'& .STLprefL' : { gridArea: 'STLprefL' },
+			'& .STLpref'  : { gridArea: 'STLpref' }
 
-				},
-			'&.right' :
-			{
-				marginLeft : 'auto',
-				width      : 30
-			},
-			'&.hidden' :
-			{
-				display : 'none'
-			},
-			'&.audioAnalyzer' :
-			{
-				width           : '30%',
-				height          : '30%',
-				minWidth        : '180px',
-				minHeight       : '120px',
-				marginLeft      : theme.spacing(0.5),
-				backgroundColor : 'rgba(0, 0, 0, 0.25)'
-			}
 		},
-		peer :
+		'&.right' :
 		{
-			display : 'flex'
+			marginLeft : 'auto',
+			width      : 30
 		},
-		displayNameEdit :
+		'&.hidden' :
 		{
-			fontSize        : 14,
-			fontWeight      : 400,
-			color           : 'rgba(255, 255, 255, 0.85)',
-			border          : 'none',
-			borderBottom    : '1px solid #aeff00',
-			backgroundColor : 'rgba(0, 0, 0, 0.25)',
-			padding         : theme.spacing(0.6)
+			display : 'none'
 		},
-		displayNameStatic :
+		'&.audioAnalyzer' :
 		{
-			userSelect      : 'none',
-			cursor          : 'text',
-			fontSize        : 14,
-			fontWeight      : 400,
-			color           : 'rgba(255, 255, 255, 0.85)',
-			backgroundColor : 'rgba(0, 0, 0, 0.25)',
-			padding         : theme.spacing(0.6),
-			'&:hover'       :
-			{
-				backgroundColor : 'rgb(174, 255, 0, 0.25)'
-			}
+			width           : '30%',
+			height          : '30%',
+			minWidth        : '180px',
+			minHeight       : '120px',
+			marginLeft      : theme.spacing(0.5),
+			backgroundColor : 'rgba(0, 0, 0, 0.25)'
 		}
+	},
+		peer :
+	{
+		display : 'flex'
+	},
+		displayNameEdit :
+	{
+		fontSize        : 14,
+		fontWeight      : 400,
+		color           : 'rgba(255, 255, 255, 0.85)',
+		border          : 'none',
+		borderBottom    : '1px solid #aeff00',
+		backgroundColor : 'rgba(0, 0, 0, 0.25)',
+		padding         : theme.spacing(0.6)
+	},
+		displayNameStatic :
+	{
+		userSelect      : 'none',
+		cursor          : 'text',
+		fontSize        : 14,
+		fontWeight      : 400,
+		color           : 'rgba(255, 255, 255, 0.85)',
+		backgroundColor : 'rgba(0, 0, 0, 0.25)',
+		padding         : theme.spacing(0.6),
+		'&:hover'       :
+		{
+			backgroundColor : 'rgb(174, 255, 0, 0.25)'
+		}
+	}
 	});
 
 class VideoView extends React.PureComponent
@@ -261,10 +263,11 @@ class VideoView extends React.PureComponent
 		} = this.state;
 
 		let quality = null;
+		const videoClientHeight = this.videoRef.current?.clientHeight;
 
 		if (showQuality)
 		{
-			quality = <SignalCellularOffIcon style={{ color: red[500] }}/>;
+			quality = <SignalCellularOffIcon style={{ color: red[500] }} />;
 
 			if (videoScore || audioScore)
 			{
@@ -275,7 +278,7 @@ class VideoView extends React.PureComponent
 					case 0:
 					case 1:
 					{
-						quality = <SignalCellular0BarIcon style={{ color: red[500] }}/>;
+						quality = <SignalCellular0BarIcon style={{ color: red[500] }} />;
 
 						break;
 					}
@@ -283,7 +286,7 @@ class VideoView extends React.PureComponent
 					case 2:
 					case 3:
 					{
-						quality = <SignalCellular1BarIcon style={{ color: red[500] }}/>;
+						quality = <SignalCellular1BarIcon style={{ color: red[500] }} />;
 
 						break;
 					}
@@ -292,7 +295,7 @@ class VideoView extends React.PureComponent
 					case 5:
 					case 6:
 					{
-						quality = <SignalCellular2BarIcon style={{ color: orange[500] }}/>;
+						quality = <SignalCellular2BarIcon style={{ color: orange[500] }} />;
 
 						break;
 					}
@@ -301,7 +304,7 @@ class VideoView extends React.PureComponent
 					case 8:
 					case 9:
 					{
-						quality = <SignalCellular3BarIcon style={{ color: yellow[500] }}/>;
+						quality = <SignalCellular3BarIcon style={{ color: yellow[500] }} />;
 
 						break;
 					}
@@ -326,60 +329,60 @@ class VideoView extends React.PureComponent
 				<div className={classes.info}>
 					<div className={classes.media}>
 						{(audioCodec || videoCodec) &&
-						<div className={classnames(classes.box, 'left', { hidden: !advancedMode })}>
-							{ audioCodec &&
-								<React.Fragment>
-									<span className={'AcodL'}>Acod: </span>
-									<span className={'Acod'}>
-										{audioCodec} {opusConfig}
-									</span>
-								</React.Fragment>
-							}
+							<div className={classnames(classes.box, 'left', { hidden: !advancedMode })}>
+								{audioCodec &&
+									<React.Fragment>
+										<span className={'AcodL'}>Acod: </span>
+										<span className={'Acod'}>
+											{audioCodec} {opusConfig}
+										</span>
+									</React.Fragment>
+								}
 
-							{ videoCodec &&
-								<React.Fragment>
-									<span className={'VcodL'}>Vcod: </span>
-									<span className={'Vcod'}>
-										{videoCodec}
-									</span>
-								</React.Fragment>
-							}
+								{videoCodec &&
+									<React.Fragment>
+										<span className={'VcodL'}>Vcod: </span>
+										<span className={'Vcod'}>
+											{videoCodec}
+										</span>
+									</React.Fragment>
+								}
 
-							{ (videoVisible && videoWidth !== null) &&
-								<React.Fragment>
-									<span className={'ResL'}>Res: </span>
-									<span className={'Res'}>
-										{videoWidth}x{videoHeight}
-									</span>
-								</React.Fragment>
-							}
+								{(videoVisible && videoWidth !== null) &&
+									<React.Fragment>
+										<span className={'ResL'}>Res: </span>
+										<span className={'Res'}>
+											{videoWidth}x{videoHeight}
+										</span>
+									</React.Fragment>
+								}
 
-							{ (videoVisible && width && height) &&
-								<React.Fragment>
-									<span className={'VPortL'}>VPort: </span>
-									<span className={'VPort'}>
-										{Math.round(width)}x{Math.round(height)}
-									</span>
-								</React.Fragment>
-							}
+								{(videoVisible && width && height) &&
+									<React.Fragment>
+										<span className={'VPortL'}>VPort: </span>
+										<span className={'VPort'}>
+											{Math.round(width)}x{Math.round(height)}
+										</span>
+									</React.Fragment>
+								}
 
-							{ isMe && !isScreen && !isExtraVideo &&
+								{isMe && !isScreen && !isExtraVideo &&
 									(netInfo.recv && netInfo.send && netInfo.send.iceSelectedTuple) &&
 									<React.Fragment>
 										<span className={'RecvL'}>Recv: </span>
 										<span className={'RecvBps'}>
-											{(netInfo.recv.sendBitrate/1024/1024).toFixed(2)}Mb/s
+											{(netInfo.recv.sendBitrate / 1024 / 1024).toFixed(2)}Mb/s
 										</span>
 										<span className={'RecvSum'}>
-											{(netInfo.recv.bytesSent/1024/1024).toFixed(2)}MB
+											{(netInfo.recv.bytesSent / 1024 / 1024).toFixed(2)}MB
 										</span>
 
 										<span className={'SendL'}>Send: </span>
 										<span className={'SendBps'}>
-											{(netInfo.send.recvBitrate/1024/1024).toFixed(2)}Mb/s
+											{(netInfo.send.recvBitrate / 1024 / 1024).toFixed(2)}Mb/s
 										</span>
 										<span className={'SendSum'}>
-											{(netInfo.send.bytesReceived/1024/1024).toFixed(2)}MB
+											{(netInfo.send.bytesReceived / 1024 / 1024).toFixed(2)}MB
 										</span>
 
 										<span className={'IPlocL'}>IPloc: </span>
@@ -392,29 +395,29 @@ class VideoView extends React.PureComponent
 											{netInfo.send.iceSelectedTuple.localIp}
 										</span>
 									</React.Fragment>
-							}
+								}
 
-							{ videoMultiLayer &&
-								<React.Fragment>
-									<span className={'STLcurrL'}>STLcurr: </span>
-									<span className={'STLcurr'}>{consumerCurrentSpatialLayer} {consumerCurrentTemporalLayer}</span>
+								{videoMultiLayer &&
+									<React.Fragment>
+										<span className={'STLcurrL'}>STLcurr: </span>
+										<span className={'STLcurr'}>{consumerCurrentSpatialLayer} {consumerCurrentTemporalLayer}</span>
 
-									<span className={'STLprefL'}>STLpref: </span>
-									<span className={'STLpref'}>{consumerPreferredSpatialLayer} {consumerPreferredTemporalLayer}</span>
-								</React.Fragment>
-							}
+										<span className={'STLprefL'}>STLpref: </span>
+										<span className={'STLpref'}>{consumerPreferredSpatialLayer} {consumerPreferredTemporalLayer}</span>
+									</React.Fragment>
+								}
 
-						</div>
+							</div>
 						}
 
 						{showAudioAnalyzer && advancedMode &&
-						<div
-							className={classnames(classes.box, 'audioAnalyzer')}
-							ref={this.audioAnalyzerContainer}
-						/>
+							<div
+								className={classnames(classes.box, 'audioAnalyzer')}
+								ref={this.audioAnalyzerContainer}
+							/>
 						}
 
-						{ showQuality &&
+						{showQuality &&
 							<div className={classnames(classes.box, 'right')}>
 								{
 									quality
@@ -424,10 +427,10 @@ class VideoView extends React.PureComponent
 
 					</div>
 
-					{ showPeerInfo &&
+					{showPeerInfo &&
 						<div className={classes.peer}>
 							<div className={classes.box}>
-								{ isMe ?
+								{isMe ?
 									<React.Fragment>
 										<EditableInput
 											value={displayName}
@@ -451,14 +454,14 @@ class VideoView extends React.PureComponent
 										{
 											(
 												(
-													localRecordingState==='start' ||
-													localRecordingState==='resume'
-												)&&
+													localRecordingState === 'start' ||
+													localRecordingState === 'resume'
+												) &&
 												(
-													recordingConsents!==undefined &&
+													recordingConsents !== undefined &&
 													!recordingConsents.includes(peer.id)
 												)
-											) ? '':displayName
+											) ? '' : displayName
 										}
 									</span>
 								}
@@ -474,11 +477,11 @@ class VideoView extends React.PureComponent
 							(
 								!isMe &&
 								(
-									localRecordingState==='start' ||
-									localRecordingState==='resume'
-								)&&
+									localRecordingState === 'start' ||
+									localRecordingState === 'resume'
+								) &&
 								(
-									recordingConsents!==undefined &&
+									recordingConsents !== undefined &&
 									!recordingConsents.includes(peer.id)
 								)
 							)
@@ -492,10 +495,19 @@ class VideoView extends React.PureComponent
 					controls={false}
 				/>
 
-				{ hasEmotionPermission &&
+				{hasEmotionPermission &&
 					<EmotionBoxes peerId={peer.id}
 						mirror={isMirrored && isMe}
 					/>
+				}
+
+				{
+					hasEmotionPermission && videoClientHeight && !advancedMode &&
+					<div style={{ position: 'absolute', zIndex: 20, marginLeft: 10 }}>
+						<EmotionHistoryChart width={(videoClientHeight * 0.7)}
+							height={videoClientHeight - 15} peerId={peer.id}
+						/>
+					</div>
 				}
 
 				{children}
@@ -531,8 +543,8 @@ class VideoView extends React.PureComponent
 		{
 			if (blob)
 			{
-				const relativeBox = [ yMin/videoHeight, xMin/videoWidth,
-					yMax/videoHeight, xMax/videoWidth ];
+				const relativeBox = [ yMin / videoHeight, xMin / videoWidth,
+					yMax / videoHeight, xMax / videoWidth ];
 
 				cb({ buffer: blob, relativeBox });
 			}
@@ -766,7 +778,7 @@ VideoView.propTypes =
 	isMe                           : PropTypes.bool,
 	isMirrored                     : PropTypes.bool,
 	isScreen                       : PropTypes.bool,
-	isExtraVideo   	               : PropTypes.bool,
+	isExtraVideo                   : PropTypes.bool,
 	showQuality                    : PropTypes.bool,
 	isFaceDetecting                : PropTypes.bool,
 	hasEmotionPermission           : PropTypes.bool,

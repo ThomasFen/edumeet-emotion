@@ -19,7 +19,7 @@ import {
 
 const initialState = {
 	emotions        : {},
-	boxes      		   : {},
+	boxes           : {},
 	emotionHistory  : {},
 	isFaceDetecting : false
 };
@@ -68,6 +68,9 @@ const emotion = (state = initialState, action) =>
 			};
 		}
 		case ADD_EMOTION: {
+			const peerEmotionHistory = state.emotionHistory[action.payload.peerId];
+			const rawData = action.payload.rawData;
+
 			return {
 				...state,
 				emotions : {
@@ -81,13 +84,22 @@ const emotion = (state = initialState, action) =>
 				emotionHistory : {
 					...state.emotionHistory,
 					[action.payload.peerId] : {
-						...state.emotionHistory[action.payload.peerId],
-						[action.payload.emotion] : [
-							...state.emotionHistory[action.payload.peerId][
-								action.payload.emotion
-							],
-							action.payload.timestamp
-						]
+						[EMOTION_HAPPY] : [ ...peerEmotionHistory[EMOTION_HAPPY],
+							rawData[EMOTION_HAPPY] ],
+						[EMOTION_ANGER] : [ ...peerEmotionHistory[EMOTION_ANGER],
+							rawData[EMOTION_ANGER] ],
+						[EMOTION_CONTEMPT] : [ ...peerEmotionHistory[EMOTION_CONTEMPT],
+							rawData[EMOTION_CONTEMPT] ],
+						[EMOTION_DISGUST] : [ ...peerEmotionHistory[EMOTION_DISGUST],
+							rawData[EMOTION_DISGUST] ],
+						[EMOTION_FEAR] : [ ...peerEmotionHistory[EMOTION_FEAR],
+							rawData[EMOTION_FEAR] ],
+						[EMOTION_NEUTRAL] : [ ...peerEmotionHistory[EMOTION_NEUTRAL],
+							rawData[EMOTION_NEUTRAL] ],
+						[EMOTION_SAD] : [ ...peerEmotionHistory[EMOTION_SAD],
+							rawData[EMOTION_SAD] ],
+						[EMOTION_SURPRISE] : [ ...peerEmotionHistory[EMOTION_SURPRISE],
+							rawData[EMOTION_SURPRISE] ]
 					}
 				}
 			};
