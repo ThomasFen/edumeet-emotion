@@ -30,6 +30,7 @@ class Celery {
   }
 
   analyze(peer, { buffer, relativeBox }) {
+    b64_image = buffer.toString('base64');
     const preAnalysisTimestamp = Date.now();
     //const formData = new FormData();
     console.log("buffer:", buffer);
@@ -42,7 +43,7 @@ class Celery {
       console.log("msg_id:", msg_id);
       let request = {
         usr: peer.id,
-        image: buffer, //msg.img,
+        image: b64_image, //msg.img,
         msg_id: msg_id,
         img_server_roundtrip_start: Date.now(),
         client_start_time: Date.now(),
