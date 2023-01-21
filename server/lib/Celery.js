@@ -49,6 +49,7 @@ class Celery {
       });
     } catch (e) {
       logger.error("Error in celery", e);
+      console.log("C Error in celery", e);
     }
   }
 }
