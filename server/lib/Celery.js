@@ -47,6 +47,7 @@ class Celery {
         msg_id: msg_id,
         img_server_roundtrip_start: Date.now(),
         client_start_time: Date.now(),
+        relativeBox: relativeBox,
       };
       this.celery_app.sendTask("tasks.EmotionRecognition", "emotionrecognition", {
         request: request,

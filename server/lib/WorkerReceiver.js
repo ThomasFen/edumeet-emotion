@@ -34,11 +34,17 @@ class WorkerSocketServer {
         console.log("received worker result");
         for (const patientResult of msg["data"]) {
           let result = JSON.stringify(patientResult)
-          console.log("sending result: ", result);
+
+          // TODO REFACTOR THIS!!
+          const final_result = { result, boxes: [relativeBox] }
+
+
+
+          console.log("sending result: ", final_result);
           socketio
             .getio()
             .to(patientResult.usr)
-            .emit("emotion", result );
+            .emit("emotion", final_result );
         }
       });
     });
