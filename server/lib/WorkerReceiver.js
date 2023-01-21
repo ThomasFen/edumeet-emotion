@@ -44,7 +44,7 @@ class WorkerSocketServer {
           socketio
             .getio()
             .to(patientResult.usr)
-            .emit("emotion", final_result );
+            .emit("emotion", JSON.stringify(final_result) );
         }
       });
     });
