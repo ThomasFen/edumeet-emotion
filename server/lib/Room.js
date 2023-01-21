@@ -1963,7 +1963,7 @@ class Room extends EventEmitter
 			case 'analyze-face':
 				{
 					const face = request.data;
-
+					console.log('analyze-face', face)
 					peer.emit('rawImage', face);
 
 					cb();
