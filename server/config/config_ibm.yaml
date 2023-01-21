@@ -41,7 +41,7 @@ mediasoup:
     comedia: false
 
 bentoML:
-  enabled: true
+  enabled: false
   URI: "http://0.0.0.0:3000/predict_async"
 
 celery:
