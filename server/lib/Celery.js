@@ -39,7 +39,7 @@ class Celery {
     try {
       let msg_id = this.makeid(20);
       console.log("msg_id:", msg_id);
-      request = {
+      let request = {
         usr: peer.id,
         image: buffer, //msg.img,
         msg_id: msg_id,
