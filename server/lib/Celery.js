@@ -33,14 +33,14 @@ class Celery {
     let b64_image = buffer.toString('base64');
     const preAnalysisTimestamp = Date.now();
     //const formData = new FormData();
-    console.log("buffer:", buffer);
+    //console.log("buffer:", buffer);
     const annotations = {
       userId: peer.id,
       conferenceId: this._roomId,
     };
     try {
       let msg_id = this.makeid(20);
-      console.log("msg_id:", msg_id);
+      //console.log("msg_id:", msg_id);
       let request = {
         usr: peer.id,
         image: b64_image, //msg.img,
