@@ -268,7 +268,7 @@ const configSchema = convict({
 		}
 	},
 	// Celery Settings
-	bentoML : 
+	celery : 
 	{
 		enabled : {
 			doc     : 'Whether to enable sending images to Celery for emotion analysis .',
