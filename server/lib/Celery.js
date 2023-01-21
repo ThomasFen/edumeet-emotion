@@ -44,7 +44,7 @@ class Celery {
         image: buffer, //msg.img,
         msg_id: msg_id,
         img_server_roundtrip_start: Date.now(),
-        client_start_time: msg.client_start_time,
+        client_start_time: Date.now(),
       };
       celery_app.sendTask("tasks.EmotionRecognition", "emotionrecognition", {
         request: request,
