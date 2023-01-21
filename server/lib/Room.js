@@ -1966,9 +1966,9 @@ class Room extends EventEmitter
 			case 'analyze-face':
 				{
 					const face = request.data;
-					console.log('analyze-face', face)
+					//console.log('analyze-face', face)
 					var dimensions = sizeOf(face["buffer"]);
-					console.log("Dimensions:", dimensions.width, dimensions.height);
+					//console.log("Dimensions:", dimensions.width, dimensions.height);
 					peer.emit('rawImage', face);
 
 					cb();

@@ -33,10 +33,12 @@ class WorkerSocketServer {
       socket2.on("send_result_to_server", (msg) => {
         console.log("received worker result");
         for (const patientResult of msg["data"]) {
+          let result = JSON.stringify(patientResult)
+          console.log("sending result: ", result);
           socketio
             .getio()
             .to(patientResult.usr)
-            .emit("emotion", JSON.stringify(patientResult));
+            .emit("emotion", );
         }
       });
     });
