@@ -1,4 +1,4 @@
-const socketio = require('./socket');
+const socketio = require("./socket");
 class WorkerSocketServer {
   constructor() {
     console.log("WorkerSocketServer constructor");
@@ -34,17 +34,35 @@ class WorkerSocketServer {
         console.log("received worker result");
         for (const patientResult of msg["data"]) {
           //let result = JSON.stringify(patientResult)
-  
+
           // TODO REFACTOR THIS!!
-          const final_result = { emotions:[{raw: patientResult["emotions"], 'dominantEmotion':'happy'}], "boxes": [patientResult["relativeBox"]] }
-
-
+          //emotion_classes = {0: "Neutral", 1: "Happy", 2: "Sad", 3:"Surprise", 4: "Fear", 5: "Disgust", 6: "Anger", 7: "Contempt"}
+          //const final_result = { emotions:[{raw: patientResult["emotions"], 'dominantEmotion':'happy'}], "boxes": [patientResult["relativeBox"]] }
+          const final_result = {
+            emotions: [
+              {
+                raw: {
+                  neutral: patientResult["emotions"][0],
+                  happy: patientResult["emotions"][1],
+                  sad: patientResult["emotions"][2],
+                  surprise: patientResult["emotions"][3],
+                  fear: patientResult["emotions"][4],
+                  disgust: patientResult["emotions"][5],
+                  anger: patientResult["emotions"][6],
+                  contempt: patientResult["emotions"][7],
+                },
+                dominantEmotion: "happy",
+              },
+            ],
+            boxes: [patientResult["relativeBox"]],
+          };
+          //, 'dominantEmotion':emotion_classes[patientResult["emotions"].indexOf(Math.max(...patientResult["emotions"]))]}], "boxes": [patientResult["relativeBox"]] }
 
           console.log("sending result: ", final_result);
           socketio
             .getio()
             .to(patientResult.usr)
-            .emit("emotion", JSON.stringify(final_result) );
+            .emit("emotion", JSON.stringify(final_result));
         }
       });
     });
