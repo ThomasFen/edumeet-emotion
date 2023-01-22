@@ -36,7 +36,7 @@ class WorkerSocketServer {
           //let result = JSON.stringify(patientResult)
   
           // TODO REFACTOR THIS!!
-          const final_result = { emotions:{raw: patientResult["emotions"]}, "boxes": [patientResult["relativeBox"]] }
+          const final_result = { emotions:[{raw: patientResult["emotions"], 'dominantEmotion':'happy'}], "boxes": [patientResult["relativeBox"]] }
 
 
 
