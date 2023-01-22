@@ -2,7 +2,6 @@ import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
 	RESTART_EMOTION,
-	INIT_EMOTION,
 	SET_FACE_DETECTING
 } from '../../actionTypes';
 
@@ -28,32 +27,6 @@ const emotion = (state = initialState, action) =>
 {
 	switch (action.type)
 	{
-		case INIT_EMOTION: {
-			return {
-				...state,
-				emotions : {
-					...state.emotions,
-					[action.payload.peerId] : null
-				},
-				boxes : {
-					...state.boxes,
-					[action.payload.peerId] : null
-				},
-				emotionHistory : {
-					...state.emotionHistory,
-					[action.payload.peerId] : {
-						[EMOTION_HAPPY]    : [],
-						[EMOTION_ANGER]    : [],
-						[EMOTION_CONTEMPT] : [],
-						[EMOTION_DISGUST]  : [],
-						[EMOTION_FEAR]     : [],
-						[EMOTION_SAD]      : [],
-						[EMOTION_NEUTRAL]  : [],
-						[EMOTION_SURPRISE] : []
-					}
-				}
-			};
-		}
 		case RESTART_EMOTION: {
 			return {
 				...state,
@@ -68,22 +41,60 @@ const emotion = (state = initialState, action) =>
 			};
 		}
 		case ADD_EMOTION: {
-			const peerEmotionHistory = state.emotionHistory[action.payload.peerId];
+			const peerId = action.payload.peerId;
+			const peerEmotionHistory = state.emotionHistory[peerId];
 			const rawData = action.payload.rawData;
+
+			if (!peerEmotionHistory)
+			{
+				return {
+					...state,
+					emotions : {
+						...state.emotions,
+						[peerId] : action.payload.emotion
+					},
+					boxes : {
+						...state.boxes,
+						[peerId] : action.payload.box
+					},
+					emotionHistory : {
+						...state.emotionHistory,
+						[peerId] : rawData ? {
+							[EMOTION_HAPPY]    : [ rawData[EMOTION_HAPPY] ],
+							[EMOTION_ANGER]    : [ rawData[EMOTION_ANGER] ],
+							[EMOTION_CONTEMPT] : [ rawData[EMOTION_CONTEMPT] ],
+							[EMOTION_DISGUST]  : [ rawData[EMOTION_DISGUST] ],
+							[EMOTION_FEAR]     : [ rawData[EMOTION_FEAR] ],
+							[EMOTION_SAD]      : [ rawData[EMOTION_SAD] ],
+							[EMOTION_NEUTRAL]  : [ rawData[EMOTION_NEUTRAL] ],
+							[EMOTION_SURPRISE] : [ rawData[EMOTION_SURPRISE] ]
+						} : {
+							[EMOTION_HAPPY]    : [],
+							[EMOTION_ANGER]    : [],
+							[EMOTION_CONTEMPT] : [],
+							[EMOTION_DISGUST]  : [],
+							[EMOTION_FEAR]     : [],
+							[EMOTION_SAD]      : [],
+							[EMOTION_NEUTRAL]  : [],
+							[EMOTION_SURPRISE] : []
+						}
+					}
+				};
+			}
 
 			return {
 				...state,
 				emotions : {
 					...state.emotions,
-					[action.payload.peerId] : action.payload.emotion
+					[peerId] : action.payload.emotion
 				},
 				boxes : {
 					...state.boxes,
-					[action.payload.peerId] : action.payload.box
+					[peerId] : action.payload.box
 				},
 				emotionHistory : {
 					...state.emotionHistory,
-					[action.payload.peerId] : {
+					[peerId] : {
 						[EMOTION_HAPPY] : [ ...peerEmotionHistory[EMOTION_HAPPY],
 							rawData[EMOTION_HAPPY] ],
 						[EMOTION_ANGER] : [ ...peerEmotionHistory[EMOTION_ANGER],

@@ -9,12 +9,14 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const userRoles = require('./access/roles');
 const FFmpeg = require('./ffmpeg');
+
 import BentoML from './BentoML';
 const {
-  getPort,
-  releasePort
+	getPort,
+	releasePort
 } = require('./port');
 const FormData = require('form-data');
+
 import {
 	BYPASS_ROOM_LOCK,
 	BYPASS_LOBBY
@@ -768,21 +770,25 @@ class Room extends EventEmitter
 			// Ensure the Peer is joined.
 			if (!peer.joined)
 				return;
-			
+
 			const preAnalysisTimestamp = Date.now();
 
-			// If we have rate limited the peer to a lower fps, we need to check if we should send the frame to the analysis worker.
-			// ffmpeg subprocess is still using target fps. We filter out frames here to meet the lowered fps.
-			if (!peer.emotion.usingTargetFps) {
+			// If we have rate limited the peer to a lower fps, we need to check if we
+			//  should send the frame to the analysis worker.
+			// ffmpeg subprocess is still using target fps.
+			//  We filter out frames here to meet the lowered fps.
+			if (!peer.emotion.usingTargetFps)
+			{
 				const sendToAnalysisWorker = (peer.emotion.nextTs <= preAnalysisTimestamp);
 
-				if (!sendToAnalysisWorker) {
+				if (!sendToAnalysisWorker)
+				{
 					logger.debug('Not meeting lowered emotion analysis fps. Not sending frame to worker [peer:"%s"]', peer.id);
 
 					return;
 				}
 
-				peer.emotion.nextTs = preAnalysisTimestamp + peer.emotion.msPerFrame
+				peer.emotion.nextTs = preAnalysisTimestamp + peer.emotion.msPerFrame;
 
 			}
 
@@ -1898,7 +1904,7 @@ class Room extends EventEmitter
 
 			case 'start-emotion-analysis':
 			{
-				if(!this._hasPermission(peer, EMOTION_ANALYSIS))
+				if (!this._hasPermission(peer, EMOTION_ANALYSIS))
 					throw new Error('peer not authorized');
 
 				const { peerId, localFaceDetection } = request.data;
@@ -1913,15 +1919,15 @@ class Room extends EventEmitter
 
 				// join room of the analyzed peer in order to receive results 
 				peer.socket.join(analyzePeer.id);
-				
+
 				// Initialize emotion analysis values
 				analyzePeer.emotion = {
-					msPerFrame: 1000 / config.emotion.targetFps,
-					nextTs: 0,
-					droppedResults: 0,
-					usingTargetFps: true,
-				  };
-				  
+					msPerFrame     : 1000 / config.emotion.targetFps,
+					nextTs         : 0,
+					droppedResults : 0,
+					usingTargetFps : true
+				};
+
 				if (localFaceDetection)
 					this._notification(analyzePeer.socket, 'start-face-detection');
 				else
@@ -1934,7 +1940,7 @@ class Room extends EventEmitter
 
 			case 'stop-emotion-analysis':
 			{
-				if(!this._hasPermission(peer, EMOTION_ANALYSIS))
+				if (!this._hasPermission(peer, EMOTION_ANALYSIS))
 					throw new Error('peer not authorized');
 
 				const { peerId, localFaceDetection } = request.data;
@@ -1943,10 +1949,10 @@ class Room extends EventEmitter
 
 				if (!analyzePeer)
 					throw new Error(`peer with id "${peerId}" not found`);
-				
+
 				// leave room of the analyzed peer in order to stop receiving results 
 				peer.socket.leave(analyzePeer.id);
-				
+
 				this._stopEmotionAnalysis(analyzePeer, localFaceDetection);
 
 				cb();
@@ -1955,15 +1961,15 @@ class Room extends EventEmitter
 			}
 
 			case 'analyze-face':
-				{
-					const face = request.data;
+			{
+				const face = request.data;
 
-					peer.emit('rawImage', face);
+				peer.emit('rawImage', face);
 
-					cb();
-	
-					break;
-				}
+				cb();
+
+				break;
+			}
 
 			default:
 			{
@@ -1974,130 +1980,148 @@ class Room extends EventEmitter
 		}
 	}
 
-	 async _rtpToImages(peer) {
+	async _rtpToImages(peer)
+	{
 		logger.debug('_rtpToImages() [peerId:%o]', peer.id);
 
-		
-		if (peer.process) {
+		if (peer.process)
+		{
 			logger.debug(`Emotions of Peer with id ${peer.id} are already being analyzed`);
-			return;
-		  }
 
-		let recordInfo = {plainConsumerIDs: {}};
-	  
-		for (const producer of peer.producers.values()) {
-		  const res = await this._publishProducerRtpStream(peer, producer);
-		  recordInfo[producer.kind] = res.rtpParameters;
-		  recordInfo['plainConsumerIDs'][producer.kind] = res.rtpConsumerId;
+			return;
 		}
-	  
+
+		const recordInfo = { plainConsumerIDs: {} };
+
+		for (const producer of peer.producers.values())
+		{
+			const res = await this._publishProducerRtpStream(peer, producer);
+
+			recordInfo[producer.kind] = res.rtpParameters;
+			recordInfo['plainConsumerIDs'][producer.kind] = res.rtpConsumerId;
+		}
+
 		recordInfo.fileName = Date.now().toString();
-	  
+
 		peer.process = new FFmpeg(recordInfo, peer);
-	  
-		setTimeout(async () => {
+
+		setTimeout(async () =>
+		{
 			const plainVideoConsumer = peer.getConsumer(recordInfo['plainConsumerIDs']['video']);
 			const plainAudioConsumer = peer.getConsumer(recordInfo['plainConsumerIDs']['audio']);
+
 			await plainVideoConsumer.resume();
 			await plainVideoConsumer.requestKeyFrame();
 			await plainAudioConsumer.resume();
 			await plainAudioConsumer.requestKeyFrame();
 		}, 1000);
-	  };
+	}
 
-	   async _publishProducerRtpStream(peer, producer) {
+	async _publishProducerRtpStream(peer, producer)
+	{
 		const router = this._mediasoupRouters.get(peer.routerId);
 		// Create the mediasoup RTP Transport used to send media to the GStreamer process
-		const rtpTransportConfig = config.mediasoup.plainRtpTransport
+		const rtpTransportConfig = config.mediasoup.plainRtpTransport;
 		const rtpTransport = await router.createPlainTransport(rtpTransportConfig);
-	  
+
 		// Set the receiver RTP ports
 		const remoteRtpPort = await getPort();
+
 		peer.addRemotePort(remoteRtpPort);
-	  
+
 		let remoteRtcpPort;
 		// If rtpTransport rtcpMux is false also set the receiver RTCP ports
-		if (!rtpTransportConfig.rtcpMux) {
-		  remoteRtcpPort = await getPort();
-		  peer.addRemotePort(remoteRtcpPort);
+
+		if (!rtpTransportConfig.rtcpMux)
+		{
+			remoteRtcpPort = await getPort();
+			peer.addRemotePort(remoteRtcpPort);
 		}
-	  
-	  
+
 		// Connect the mediasoup RTP transport to the ports used by GStreamer
 		await rtpTransport.connect({
-		  ip: '127.0.0.1',
-		  port: remoteRtpPort,
-		  rtcpPort: remoteRtcpPort
+			ip       : '127.0.0.1',
+			port     : remoteRtpPort,
+			rtcpPort : remoteRtcpPort
 		});
-	  
+
 		peer.addTransport(rtpTransport.id, rtpTransport);
-	  
+
 		const codecs = [];
-		// Codec passed to the RTP Consumer must match the codec in the Mediasoup router rtpCapabilities
+		// Codec passed to the RTP Consumer must match the codec in
+		//  the Mediasoup router rtpCapabilities
 		const routerCodec = router.rtpCapabilities.codecs.find(
-		  codec => codec.kind === producer.kind
+			(codec) => codec.kind === producer.kind
 		);
+
 		codecs.push(routerCodec);
-	  
+
 		const rtpCapabilities = {
-		  codecs,
-		  rtcpFeedback: []
+			codecs,
+			rtcpFeedback : []
 		};
-	  
+
 		// Start the consumer paused
 		// Once the gstreamer process is ready to consume resume and send a keyframe
 		const rtpConsumer = await rtpTransport.consume({
-		  producerId: producer.id,
-		  rtpCapabilities,
-		  paused: true
+			producerId : producer.id,
+			rtpCapabilities,
+			paused     : true
 		});
-	  
+
 		peer.addConsumer(rtpConsumer.id, rtpConsumer);
 
-	  
 		return {
-			rtpParameters:
-			 {
-			remoteRtpPort,
-			remoteRtcpPort,
-			localRtcpPort: rtpTransport.rtcpTuple ? rtpTransport.rtcpTuple.localPort : undefined,
-			rtpCapabilities,
-			rtpParameters: rtpConsumer.rtpParameters
-				},
-		   rtpConsumerId: rtpConsumer.id
+			rtpParameters :
+			{
+				remoteRtpPort,
+				remoteRtcpPort,
+				localRtcpPort : rtpTransport.rtcpTuple ? rtpTransport.rtcpTuple.localPort
+					: undefined,
+				rtpCapabilities,
+				rtpParameters : rtpConsumer.rtpParameters
+			},
+			rtpConsumerId : rtpConsumer.id
 		};
-	  };
+	}
 
-	 async _stopEmotionAnalysis(peer, localFaceDetection) {
+	async _stopEmotionAnalysis(peer, localFaceDetection)
+	{
 		logger.debug('_stopEmotionAnalysis() [peerId:%o]', peer.id);
 
-		const hasSubscribers = socketio.getio().sockets.adapter.rooms[peer.id] !== undefined;   
+		const hasSubscribers = socketio.getio().sockets.adapter.rooms[peer.id] !== undefined;
 
-		if (hasSubscribers) {
+		if (hasSubscribers)
+		{
 			logger.debug(`Peer with id ${peer.id} has subscribers. Not stopping emotion analysis`);
 
 			return;
 		}
-		if (localFaceDetection) {
+		if (localFaceDetection)
+		{
 			logger.debug(`Notifying Peer with id ${peer.id} to stop local face detection`);
 
 			this._notification(peer.socket, 'stop-face-detection');
+
 			return;
 		}
-		if (!peer.process) {
+		if (!peer.process)
+		{
 			logger.error(`Emotions of Peer with id ${peer.id} are not analyzed`);
 
 			return;
-		  }
+		}
 
 		peer.process.kill();
 		peer.process = undefined;
 
 		// Release ports from port set
-		for (const remotePort of peer.remotePorts) {
-		releasePort(remotePort);
+		for (const remotePort of peer.remotePorts)
+		{
+			releasePort(remotePort);
 		}
-	 }
+	}
+
 	/**
 	 * Creates a mediasoup Consumer for the given mediasoup Producer.
 	 *

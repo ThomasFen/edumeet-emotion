@@ -1238,8 +1238,7 @@ export default class RoomClient
 					emotionActions.restartEmotion(peerId));
 			else
 				store.dispatch(
-					emotionActions.initEmotion(peerId));
-
+					emotionActions.addEmotion(peerId));
 		}
 		catch (error)
 		{
