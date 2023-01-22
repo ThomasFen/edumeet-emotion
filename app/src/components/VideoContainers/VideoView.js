@@ -11,7 +11,6 @@ import SignalCellular1BarIcon from '@material-ui/icons/SignalCellular1Bar';
 import SignalCellular2BarIcon from '@material-ui/icons/SignalCellular2Bar';
 import SignalCellular3BarIcon from '@material-ui/icons/SignalCellular3Bar';
 import { AudioAnalyzer } from './AudioAnalyzer';
-import ParentSize from '@visx/responsive/lib/components/ParentSize';
 import EmotionBoxes from '../emotion/EmotionBoxes';
 import EmotionHistoryChart from '../emotion/EmotionHistoryChart';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
