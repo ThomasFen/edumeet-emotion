@@ -32,6 +32,7 @@ class WorkerSocketServer {
       });
       socket2.on("send_result_to_server", (msg) => {
         console.log("received worker result");
+        console.log(msg);
         for (const patientResult of msg["data"]) {
           //let result = JSON.stringify(patientResult)
 
@@ -42,14 +43,14 @@ class WorkerSocketServer {
             emotions: [
               {
                 raw: {
-                  neutral: patientResult["emotions"][0],
-                  happy: patientResult["emotions"][1],
-                  sad: patientResult["emotions"][2],
-                  surprise: patientResult["emotions"][3],
-                  fear: patientResult["emotions"][4],
-                  disgust: patientResult["emotions"][5],
-                  anger: patientResult["emotions"][6],
-                  contempt: patientResult["emotions"][7],
+                  neutral: patientResult["emotions"][0].value,
+                  happy: patientResult["emotions"][1].value,
+                  sad: patientResult["emotions"][2].value,
+                  surprise: patientResult["emotions"][3].value,
+                  fear: patientResult["emotions"][4].value,
+                  disgust: patientResult["emotions"][5].value,
+                  anger: patientResult["emotions"][6].value,
+                  contempt: patientResult["emotions"][7].value,
                 },
                 dominantEmotion: "happy",
               },
