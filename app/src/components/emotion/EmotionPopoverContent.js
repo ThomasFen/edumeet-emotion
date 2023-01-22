@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Bar } from '@visx/shape';
 import { Group } from '@visx/group';
 import { useSelector } from 'react-redux';
-import { RadialGradient } from '@visx/gradient';
+import { LinearGradient } from '@visx/gradient';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom } from '@visx/axis';
 import { SvgIcon } from '@material-ui/core';
@@ -38,8 +38,9 @@ const verticalMargin = 35;
 // accessors
 const getEmotion = (d) => d.emotion;
 const getEmotionFrequency = (d) => d.duration;
-const BARCOLOR = '#a9b8cf';
+const BARCOLOR = '#338fbd';
 const WHITE = '#ffffff';
+const BACKGROUNDCOLOR = '#515152';
 
 export default function EmotionPopoverContent({
 	width,
@@ -173,16 +174,16 @@ export default function EmotionPopoverContent({
 			</SvgIcon>
 
 			<svg width={width} height={height}>
-				<RadialGradient
-					id={'jitsiBlue'}
-					from='#3f6296'
-					to='#122c52'
-					r='60%'
+				<LinearGradient
+					id='visx-axis-gradient'
+					from={BACKGROUNDCOLOR}
+					to={BACKGROUNDCOLOR}
+					toOpacity={0.7}
 				/>
 				<rect
 					width={width}
 					height={height}
-					fill='url(#jitsiBlue)'
+					fill='url(#visx-axis-gradient)'
 					rx={14}
 				/>
 				<Group top={verticalMargin / 2}>
