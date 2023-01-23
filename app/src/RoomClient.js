@@ -1238,7 +1238,7 @@ export default class RoomClient
 					emotionActions.restartEmotion(peerId));
 			else
 				store.dispatch(
-					emotionActions.addEmotion(peerId));
+					emotionActions.addEmotion({ peerId }));
 		}
 		catch (error)
 		{
@@ -3809,22 +3809,23 @@ export default class RoomClient
 		{
 			const emotion = JSON.parse(msg);
 
-			let rawData = emotion.emotions[0].raw;
-
-			rawData = Object.keys(rawData).reduce((acc, key) =>
+			const { peerId, emotions: [ { dominantEmotion, box, raw } ] } = emotion;
+			const date = new Date(emotion.date);
+			const values = Object.keys(raw).reduce((acc, key) =>
 			{
 				acc[key] = {
-					value : rawData[key].value,
-					date  : new Date(rawData[key].date)
+					value : raw[key],
+					date  : date
+
 				};
 
 				return acc;
 			}, {});
 
-			store.dispatch(
-				emotionActions.addEmotion(emotion.peerId,
-					emotion.emotions[0].dominantEmotion, emotion.emotions[0].box, rawData)
-			);
+			store.dispatch(emotionActions.addEmotion({ peerId,
+				emotion : dominantEmotion,
+				box,
+				values }));
 		});
 	}
 

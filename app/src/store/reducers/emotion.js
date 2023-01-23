@@ -43,7 +43,7 @@ const emotion = (state = initialState, action) =>
 		case ADD_EMOTION: {
 			const peerId = action.payload.peerId;
 			const peerEmotionHistory = state.emotionHistory[peerId];
-			const rawData = action.payload.rawData;
+			const values = action.payload.values;
 
 			if (!peerEmotionHistory)
 			{
@@ -59,15 +59,15 @@ const emotion = (state = initialState, action) =>
 					},
 					emotionHistory : {
 						...state.emotionHistory,
-						[peerId] : rawData ? {
-							[EMOTION_HAPPY]    : [ rawData[EMOTION_HAPPY] ],
-							[EMOTION_ANGER]    : [ rawData[EMOTION_ANGER] ],
-							[EMOTION_CONTEMPT] : [ rawData[EMOTION_CONTEMPT] ],
-							[EMOTION_DISGUST]  : [ rawData[EMOTION_DISGUST] ],
-							[EMOTION_FEAR]     : [ rawData[EMOTION_FEAR] ],
-							[EMOTION_SAD]      : [ rawData[EMOTION_SAD] ],
-							[EMOTION_NEUTRAL]  : [ rawData[EMOTION_NEUTRAL] ],
-							[EMOTION_SURPRISE] : [ rawData[EMOTION_SURPRISE] ]
+						[peerId] : values ? {
+							[EMOTION_HAPPY]    : [ values[EMOTION_HAPPY] ],
+							[EMOTION_ANGER]    : [ values[EMOTION_ANGER] ],
+							[EMOTION_CONTEMPT] : [ values[EMOTION_CONTEMPT] ],
+							[EMOTION_DISGUST]  : [ values[EMOTION_DISGUST] ],
+							[EMOTION_FEAR]     : [ values[EMOTION_FEAR] ],
+							[EMOTION_SAD]      : [ values[EMOTION_SAD] ],
+							[EMOTION_NEUTRAL]  : [ values[EMOTION_NEUTRAL] ],
+							[EMOTION_SURPRISE] : [ values[EMOTION_SURPRISE] ]
 						} : {
 							[EMOTION_HAPPY]    : [],
 							[EMOTION_ANGER]    : [],
@@ -96,21 +96,21 @@ const emotion = (state = initialState, action) =>
 					...state.emotionHistory,
 					[peerId] : {
 						[EMOTION_HAPPY] : [ ...peerEmotionHistory[EMOTION_HAPPY],
-							rawData[EMOTION_HAPPY] ],
+							values[EMOTION_HAPPY] ],
 						[EMOTION_ANGER] : [ ...peerEmotionHistory[EMOTION_ANGER],
-							rawData[EMOTION_ANGER] ],
+							values[EMOTION_ANGER] ],
 						[EMOTION_CONTEMPT] : [ ...peerEmotionHistory[EMOTION_CONTEMPT],
-							rawData[EMOTION_CONTEMPT] ],
+							values[EMOTION_CONTEMPT] ],
 						[EMOTION_DISGUST] : [ ...peerEmotionHistory[EMOTION_DISGUST],
-							rawData[EMOTION_DISGUST] ],
+							values[EMOTION_DISGUST] ],
 						[EMOTION_FEAR] : [ ...peerEmotionHistory[EMOTION_FEAR],
-							rawData[EMOTION_FEAR] ],
+							values[EMOTION_FEAR] ],
 						[EMOTION_NEUTRAL] : [ ...peerEmotionHistory[EMOTION_NEUTRAL],
-							rawData[EMOTION_NEUTRAL] ],
+							values[EMOTION_NEUTRAL] ],
 						[EMOTION_SAD] : [ ...peerEmotionHistory[EMOTION_SAD],
-							rawData[EMOTION_SAD] ],
+							values[EMOTION_SAD] ],
 						[EMOTION_SURPRISE] : [ ...peerEmotionHistory[EMOTION_SURPRISE],
-							rawData[EMOTION_SURPRISE] ]
+							values[EMOTION_SURPRISE] ]
 					}
 				}
 			};

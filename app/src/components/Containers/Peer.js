@@ -1188,7 +1188,7 @@ Peer.propTypes =
 	extraVideoConsumers      : PropTypes.arrayOf(appPropTypes.Consumer),
 	windowConsumer           : PropTypes.string,
 	fullScreenConsumer       : PropTypes.string,
-	emotionAnalysisActive    : PropTypes.object,
+	emotionAnalysisActive    : PropTypes.bool,
 	activeSpeaker            : PropTypes.bool,
 	browser                  : PropTypes.object.isRequired,
 	spacing                  : PropTypes.number,

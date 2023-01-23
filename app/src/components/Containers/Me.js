@@ -1159,7 +1159,7 @@ Me.propTypes =
 	advancedMode          : PropTypes.bool,
 	me                    : appPropTypes.Me.isRequired,
 	settings              : PropTypes.object,
-	emotionAnalysisActive : PropTypes.object,
+	emotionAnalysisActive : PropTypes.bool,
 	activeSpeaker         : PropTypes.bool,
 	isFaceDetecting       : PropTypes.bool,
 	micProducer           : appPropTypes.Producer,
