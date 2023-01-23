@@ -44,14 +44,14 @@ class WorkerSocketServer {
             'date': Date.now(),
             'emotions': [{
               'raw':{
-                'happy': patientResult["emotions"][1], 
-                'sad': patientResult["emotions"][2], 
-                'neutral': patientResult["emotions"][0], 
-                'surprise': patientResult["emotions"][3], 
-                'fear': patientResult["emotions"][4], 
-                'disgust': patientResult["emotions"][5], 
-                'anger': patientResult["emotions"][6], 
-                'contempt': patientResult["emotions"][7], 
+                'happy': {'date':Date.now(), 'value':patientResult["emotions"][1]}, 
+                'sad': {'date':Date.now(), 'value':patientResult["emotions"][2]}, 
+                'neutral': {'date':Date.now(), 'value':patientResult["emotions"][0]}, 
+                'surprise': {'date':Date.now(), 'value':patientResult["emotions"][3]}, 
+                'fear': {'date':Date.now(), 'value':patientResult["emotions"][4]}, 
+                'disgust': {'date':Date.now(), 'value':patientResult["emotions"][5]},
+                'anger': {'date':Date.now(), 'value':patientResult["emotions"][6]},
+                'contempt': {'date':Date.now(), 'value':patientResult["emotions"][7]},
               },
             'dominantEmotion': 'happy'
             }], 
