@@ -3811,8 +3811,6 @@ export default class RoomClient
 
 			let rawData = emotion.emotions[0].raw;
 
-			logger.info('incomming emotion data: ', rawData);
-
 			rawData = Object.keys(rawData).reduce((acc, key) =>
 			{
 				acc[key] = {
