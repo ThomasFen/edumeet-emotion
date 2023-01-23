@@ -1,4 +1,5 @@
 const socketio = require("./socket");
+const emotion_classes = {0: "Neutral", 1: "Happy", 2: "Sad", 3:"Surprise", 4: "Fear", 5: "Disgust", 6: "Anger", 7: "Contempt"}
 class WorkerSocketServer {
   constructor() {
     console.log("WorkerSocketServer constructor");
@@ -37,7 +38,7 @@ class WorkerSocketServer {
           //let result = JSON.stringify(patientResult)
 
           // TODO REFACTOR THIS!!
-          emotion_classes = {0: "Neutral", 1: "Happy", 2: "Sad", 3:"Surprise", 4: "Fear", 5: "Disgust", 6: "Anger", 7: "Contempt"}
+          
           //const final_result = { emotions:[{raw: patientResult["emotions"], 'dominantEmotion':'happy'}], "boxes": [patientResult["relativeBox"]] }
           // get index of max value of  emotion from patientResult["emotions"]
           const indexOfDominantEmotion = patientResult["emotions"].indexOf(Math.max(...patientResult["emotions"]));
