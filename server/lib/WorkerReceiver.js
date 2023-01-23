@@ -39,39 +39,19 @@ class WorkerSocketServer {
           // TODO REFACTOR THIS!!
           //emotion_classes = {0: "Neutral", 1: "Happy", 2: "Sad", 3:"Surprise", 4: "Fear", 5: "Disgust", 6: "Anger", 7: "Contempt"}
           //const final_result = { emotions:[{raw: patientResult["emotions"], 'dominantEmotion':'happy'}], "boxes": [patientResult["relativeBox"]] }
-          //const final_result = { 
-          //  'output': "emotion_model_output", 
-          //  'emotions': { 
-          //    'userId': patientResult.usr, 
-          //    'emotions': [{
-          //      'raw':{
-          //        'happy': {'date': Date.now(), 'value': 1}, 
-          //        'sad': {'date': Date.now(), 'value': 0},
-          //        'neutral': {'date': Date.now(), 'value': 0},
-          //        'surprise': {'date': Date.now(), 'value': 0},
-          //        'fear': {'date': Date.now(), 'value': 0},
-          //        'disgust': {'date': Date.now(), 'value': 0},
-          //        'anger': {'date': Date.now(), 'value': 0},
-          //        'contempt': {'date': Date.now(), 'value': 0}
-          //      }, 
-          //      'dominantEmotion':'happy'
-          //    }], 
-          //    'boxes': [patientResult["relativeBox"]] 
-          //  } 
-          //}
           const final_result = { 
             'userId': patientResult.userId, 
             'date': Date.now(),
             'emotions': [{
               'raw':{
-                'happy': 1, 
-                'sad': 0,
-                'neutral': 0,
-                'surprise': 0,
-                'fear': 0,
-                'disgust': 0,
-                'anger': 0,
-                'contempt': 0
+                'happy': patientResult["emotions"][1], 
+                'sad': patientResult["emotions"][2], 
+                'neutral': patientResult["emotions"][0], 
+                'surprise': patientResult["emotions"][3], 
+                'fear': patientResult["emotions"][4], 
+                'disgust': patientResult["emotions"][5], 
+                'anger': patientResult["emotions"][6], 
+                'contempt': patientResult["emotions"][7], 
               },
             'dominantEmotion': 'happy'
             }], 

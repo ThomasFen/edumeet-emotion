@@ -3810,6 +3810,7 @@ export default class RoomClient
 			const emotion = JSON.parse(msg);
 
 			let rawData = emotion.emotions[0].raw;
+			console.log("incomming emotion data: ",rawData)
 
 			rawData = Object.keys(rawData).reduce((acc, key) =>
 			{
