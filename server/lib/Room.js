@@ -15,7 +15,6 @@ const {
 	getPort,
 	releasePort
 } = require('./port');
-const FormData = require('form-data');
 
 import {
 	BYPASS_ROOM_LOCK,
@@ -793,7 +792,10 @@ class Room extends EventEmitter
 			}
 
 			if (config.bentoML.enabled)
-				this._bentoml.analyze(peer, face);
+				this._bentoml.analyze({
+					peerId  : peer.id,
+					authId  : peer.authId,
+					emotion : peer.emotion }, face);
 		});
 
 		peer.on('gotRole', ({ newRole }) =>

@@ -61,7 +61,7 @@ class Peer extends EventEmitter
 		this._consumers = new Map();
 
 		this._process = undefined;
-		
+
 		this._remotePorts = [];
 
 		this._handlePeer();
