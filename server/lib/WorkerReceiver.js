@@ -37,8 +37,10 @@ class WorkerSocketServer {
           //let result = JSON.stringify(patientResult)
 
           // TODO REFACTOR THIS!!
-          //emotion_classes = {0: "Neutral", 1: "Happy", 2: "Sad", 3:"Surprise", 4: "Fear", 5: "Disgust", 6: "Anger", 7: "Contempt"}
+          emotion_classes = {0: "Neutral", 1: "Happy", 2: "Sad", 3:"Surprise", 4: "Fear", 5: "Disgust", 6: "Anger", 7: "Contempt"}
           //const final_result = { emotions:[{raw: patientResult["emotions"], 'dominantEmotion':'happy'}], "boxes": [patientResult["relativeBox"]] }
+          // get index of max value of  emotion from patientResult["emotions"]
+          const indexOfDominantEmotion = patientResult["emotions"].indexOf(Math.max(...patientResult["emotions"]));
           const final_result = { 
             'userId': patientResult["usr"], 
             'date': Date.now(),
@@ -53,10 +55,11 @@ class WorkerSocketServer {
                 'anger': {'date':Date.now(), 'value':patientResult["emotions"][6]},
                 'contempt': {'date':Date.now(), 'value':patientResult["emotions"][7]},
               },
-            'dominantEmotion': 'happy'
+            'dominantEmotion': emotion_classes[indexOfDominantEmotion]
             }], 
             'boxes': [patientResult["relativeBox"]] 
           }
+
 
 
           console.log("sending result: ", final_result);
