@@ -81,3 +81,12 @@ export const STOP_EMOTION_RECOGNITION = 'STOP_EMOTION_RECOGNITION';
 * }
 */
 export const SET_FACE_DETECTING = 'SET_FACE_DETECTING';
+
+/**
+* Redux action type dispatched to allow user finer grained emotion analysis options.
+*
+* {
+*      type: TOGGLE_ADVANCED_EMOTION_MODE
+* }
+*/
+export const TOGGLE_ADVANCED_EMOTION_MODE = 'TOGGLE_ADVANCED_EMOTION_MODE';

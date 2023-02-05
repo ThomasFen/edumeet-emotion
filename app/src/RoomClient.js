@@ -1222,16 +1222,17 @@ export default class RoomClient
 		}
 	}
 
-	async emotionStartAnalysis(peerId)
+	async emotionStartAnalysis({ peerId, localFaceDetection = false })
 	{
-		logger.debug('emotionStartAnalysis()', peerId);
+		logger.debug(`emotionStartAnalysis()[peerId: ${peerId}],
+			[localFaceDetection: ${localFaceDetection}]`);
 
 		try
 		{
 			const hasHistory = peerId in store.getState().emotion.emotionHistory;
 
 			await this.sendRequest('start-emotion-analysis',
-				{ peerId, localFaceDetection: config.localFaceDetection });
+				{ peerId, localFaceDetection: localFaceDetection });
 
 			if (hasHistory)
 				store.dispatch(
@@ -1256,14 +1257,15 @@ export default class RoomClient
 		}
 	}
 
-	async emotionStopAnalysis(peerId)
+	async emotionStopAnalysis({ peerId, localFaceDetection })
 	{
-		logger.debug('emotionStopAnalysis()', peerId);
+		logger.debug(`emotionStopAnalysis()[peerId: ${peerId}],
+			[localFaceDetection: ${localFaceDetection}]`);
 
 		try
 		{
 			await this.sendRequest('stop-emotion-analysis',
-				{ peerId, localFaceDetection: config.localFaceDetection });
+				{ peerId, localFaceDetection });
 
 			store.dispatch(
 				emotionActions.deleteEmotion(peerId));
@@ -3808,8 +3810,8 @@ export default class RoomClient
 		this._signalingSocket.on('emotion', function(msg)
 		{
 			const emotion = JSON.parse(msg);
-
-			const { peerId, emotions: [ { dominantEmotion, box, raw } ] } = emotion;
+			const { peerId, clientFaceDetection,
+				emotions: [ { dominantEmotion, box, raw } ] } = emotion;
 			const date = new Date(emotion.date);
 			const values = Object.keys(raw).reduce((acc, key) =>
 			{
@@ -3824,7 +3826,7 @@ export default class RoomClient
 
 			store.dispatch(emotionActions.addEmotion({ peerId,
 				emotion : dominantEmotion,
-				box,
+				box     : [ ...box.slice(0, 4), clientFaceDetection ],
 				values }));
 		});
 	}

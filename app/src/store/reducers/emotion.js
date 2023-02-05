@@ -2,7 +2,8 @@ import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
 	RESTART_EMOTION,
-	SET_FACE_DETECTING
+	SET_FACE_DETECTING,
+	TOGGLE_ADVANCED_EMOTION_MODE
 } from '../../actionTypes';
 
 import {
@@ -20,7 +21,10 @@ const initialState = {
 	emotions        : {},
 	boxes           : {},
 	emotionHistory  : {},
-	isFaceDetecting : false
+	isFaceDetecting : false,
+	settings      		: {
+		advancedEmotionMode	: false
+	}
 };
 
 const emotion = (state = initialState, action) =>
@@ -136,6 +140,13 @@ const emotion = (state = initialState, action) =>
 			const { isFaceDetecting } = action.payload;
 
 			return { ...state, isFaceDetecting: isFaceDetecting };
+		}
+
+		case TOGGLE_ADVANCED_EMOTION_MODE:
+		{
+			const advancedEmotionMode = !state.settings.advancedEmotionMode;
+
+			return { ...state, settings: { ...state.settings, advancedEmotionMode } };
 		}
 
 		default:

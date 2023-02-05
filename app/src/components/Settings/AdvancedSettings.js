@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
 import { withRoomContext } from '../../RoomContext';
 import * as settingsActions from '../../store/actions/settingsActions';
+import * as emotionActions from '../../store/actions/emotionActions';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { useIntl, FormattedMessage } from 'react-intl';
@@ -12,6 +13,8 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
+import { makePermissionSelector } from '../../store/selectors';
+import { permissions } from '../../permissions';
 import { config } from '../../config';
 
 const styles = (theme) =>
@@ -36,15 +39,30 @@ const styles = (theme) =>
 const AdvancedSettings = ({
 	roomClient,
 	settings,
+	emotionSettings,
 	onToggleAdvancedMode,
+	onToggleAdvancedEmotionMode,
 	onToggleNotificationSounds,
-	classes
+	classes,
+	hasEmotionPermission
 }) =>
 {
 	const intl = useIntl();
 
 	return (
 		<React.Fragment>
+			{
+				hasEmotionPermission &&
+				<FormControlLabel
+					className={classnames(classes.setting, classes.switchLabel)}
+					control={<Switch checked={emotionSettings.advancedEmotionMode} onChange={onToggleAdvancedEmotionMode} value='advancedEmotionMode' />}
+					labelPlacement='start'
+					label={intl.formatMessage({
+						id             : 'emotionSettings.advancedEmotionMode',
+						defaultMessage : 'Advanced emotion mode'
+					})}
+				/>
+			}
 			<FormControlLabel
 				className={classnames(classes.setting, classes.switchLabel)}
 				control={<Switch checked={settings.advancedMode} onChange={onToggleAdvancedMode} value='advancedMode' />}
@@ -104,32 +122,47 @@ const AdvancedSettings = ({
 
 AdvancedSettings.propTypes =
 {
-	roomClient                 : PropTypes.any.isRequired,
-	settings                   : PropTypes.object.isRequired,
-	onToggleAdvancedMode       : PropTypes.func.isRequired,
-	onToggleNotificationSounds : PropTypes.func.isRequired,
-	classes                    : PropTypes.object.isRequired
+	roomClient                  : PropTypes.any.isRequired,
+	settings                    : PropTypes.object.isRequired,
+	emotionSettings             : PropTypes.object.isRequired,
+	onToggleAdvancedMode        : PropTypes.func.isRequired,
+	onToggleAdvancedEmotionMode : PropTypes.func.isRequired,
+	onToggleNotificationSounds  : PropTypes.func.isRequired,
+	hasEmotionPermission        : PropTypes.bool.isRequired,
+	classes                     : PropTypes.object.isRequired
 };
 
-const mapStateToProps = (state) =>
-	({
-		settings : state.settings
-	});
+const makeMapStateToProps = () =>
+{
+	const canAnalyzeEmotions =
+		makePermissionSelector(permissions.EMOTION_ANALYSIS);
+
+	const mapStateToProps = (state) =>
+		({
+			settings             : state.settings,
+			emotionSettings      : state.emotion.settings,
+			hasEmotionPermission : canAnalyzeEmotions(state)
+		});
+
+	return mapStateToProps;
+};
 
 const mapDispatchToProps = {
-	onToggleAdvancedMode       : settingsActions.toggleAdvancedMode,
-	onToggleNotificationSounds : settingsActions.toggleNotificationSounds
+	onToggleAdvancedMode        : settingsActions.toggleAdvancedMode,
+	onToggleAdvancedEmotionMode : emotionActions.toggleAdvancedEmotionMode,
+	onToggleNotificationSounds  : settingsActions.toggleNotificationSounds
 };
 
 export default withRoomContext(connect(
-	mapStateToProps,
+	makeMapStateToProps,
 	mapDispatchToProps,
 	null,
 	{
 		areStatesEqual : (next, prev) =>
 		{
 			return (
-				prev.settings === next.settings
+				prev.settings === next.settings &&
+				prev.emotion.settings === next.emotion.settings
 			);
 		}
 	}

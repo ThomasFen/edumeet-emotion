@@ -3,13 +3,9 @@ import { connect } from 'react-redux';
 import { makePeerConsumerSelector, recordingConsentsPeersSelector, makePermissionSelector } from '../../store/selectors';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import Popover from '@material-ui/core/Popover';
 import * as appPropTypes from '../appPropTypes';
 import { withRoomContext } from '../../RoomContext';
-import CancelIcon from '@material-ui/icons/Cancel';
-import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
 import { withStyles, makeStyles } from '@material-ui/core/styles';
-import EmotionPopoverContent from '../emotion/EmotionPopoverContent';
 import { permissions } from '../../permissions';
 import * as roomActions from '../../store/actions/roomActions';
 import { useIntl, FormattedMessage } from 'react-intl';
@@ -26,6 +22,7 @@ import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Volume from './Volume';
+import EmotionFab from '../emotion/EmotionFab';
 
 const styles = (theme) =>
 	({
@@ -545,64 +542,15 @@ const Peer = (props) =>
 							placement={height <= 190 ? 'bottom' : 'left'}
 						>
 							<div>
-								<Fab
-									aria-label={intl.formatMessage({
-										id             : 'emotion.startAnalysis',
-										defaultMessage : 'Activate emotion analysis'
-									})}
-									style={{ ...controls.item.style }}
-									disabled={!hasEmotionPermission}
-									className={classnames('fab')}
-									color={emotionAnalysisState === 'active' ?
-										'secondary'
-										: 'default'
-									}
-									size={controls.item.size}
-									onMouseEnter={emotionPopupOpen}
-									onMouseLeave={emotionPopupClose}
-									aria-haspopup='true'
-									aria-owns={open ? 'mouse-over-popover' : undefined}
-									onClick={() =>
-									{
-										if (emotionAnalysisState === 'active')
-											roomClient.emotionStopAnalysis(peer.id);
-										else
-											roomClient.emotionStartAnalysis(peer.id);
-									}}
-								>
-									{ emotionAnalysisState === 'active' ?
-										<CancelIcon />
-										:
-										<EmojiEmotionsIcon />
-									}
-								</Fab>
-								{ emotionAnalysisState === 'active' &&
-								<Popover
-									id='mouse-over-popover'
-									open={open}
-									className={classesPopover.popover}
-									disableRestoreFocus
-									anchorEl={anchorEl}
-									classes={{
-										paper : classesPopover.paper
-									}}
-									onClose={emotionPopupClose}
-									anchorOrigin={{
-										vertical   : 'top',
-										horizontal : 'right'
-									}}
-									transformOrigin={{
-										vertical   : 'bottom',
-										horizontal : 'right'
-									}}
-								>
-									<EmotionPopoverContent
-										width={240}
-										height={120}
-										peerId={peer.id}
-									/>
-								</Popover>
-								}
+								<EmotionFab
+									hasEmotionPermission={hasEmotionPermission}
+									emotionAnalysisState={emotionAnalysisState}
+									roomClient={roomClient}
+									peerId={peer.id}
+									controls={controls}
+									classnames={classnames}
+									classesPopover={classesPopover}
+								/>
 							</div>
 						</Tooltip>
 

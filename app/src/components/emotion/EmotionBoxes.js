@@ -53,7 +53,7 @@ export default function EmotionBoxes({
 
 							return;
 						}
-						else if (config.localFaceDetection)
+						else if (currentBox[4])
 						{
 							[ topLeftY, topLeftX, bottomRightY, bottomRightX ]
 								= currentBox.map((c, i) =>
@@ -63,6 +63,8 @@ export default function EmotionBoxes({
 								});
 						}
 						else
+						// Server-side face detection coordinates are created on a square.
+						// Here we take into account any padding that may have been added to the image.
 						{
 							const longSide = Math.max(width, height);
 							const shortSide = Math.min(width, height);

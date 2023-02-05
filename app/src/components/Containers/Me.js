@@ -8,7 +8,6 @@ import {
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { permissions } from '../../permissions';
 import { withRoomContext } from '../../RoomContext';
-import Popover from '@material-ui/core/Popover';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import * as appPropTypes from '../appPropTypes';
@@ -18,8 +17,6 @@ import Volume from './Volume';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import MicIcon from '@material-ui/icons/Mic';
-import EmojiEmotionsIcon from '@material-ui/icons/EmojiEmotions';
-import CancelIcon from '@material-ui/icons/Cancel';
 import MicOffIcon from '@material-ui/icons/MicOff';
 import VideoIcon from '@material-ui/icons/Videocam';
 import VideoOffIcon from '@material-ui/icons/VideocamOff';
@@ -28,7 +25,7 @@ import SettingsVoiceIcon from '@material-ui/icons/SettingsVoice';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import EmotionPopoverContent from '../emotion/EmotionPopoverContent';
+import EmotionFab from '../emotion/EmotionFab';
 
 const styles = (theme) =>
 	({
@@ -541,19 +538,6 @@ const Me = (props) =>
 	// menu
 	const [ menuAnchorElement, setMenuAnchorElement ] = React.useState(null);
 	const [ showAudioAnalyzer, setShowAudioAnalyzer ] = React.useState(null);
-	const [ anchorEl, setAnchorEl ] = React.useState(null);
-	const open = Boolean(anchorEl);
-
-	const emotionPopupOpen = (event) =>
-	{
-		setAnchorEl(event.currentTarget);
-	};
-
-	const emotionPopupClose = () =>
-	{
-		setAnchorEl(null);
-
-	};
 
 	const useStyles = makeStyles(() => ({
 		popover : {
@@ -682,64 +666,15 @@ const Me = (props) =>
 									placement={height <= 190 ? 'bottom' : 'left'}
 								>
 									<div>
-										<Fab
-											aria-label={intl.formatMessage({
-												id             : 'emotion.startAnalysis',
-												defaultMessage : 'Activate emotion analysis'
-											})}
-											style={{ ...controls.item.style }}
-											disabled={!hasEmotionPermission}
-											className={classnames('fab')}
-											color={emotionAnalysisState === 'active' ?
-												'secondary'
-												: 'default'
-											}
-											size={controls.item.size}
-											onMouseEnter={emotionPopupOpen}
-											onMouseLeave={emotionPopupClose}
-											aria-haspopup='true'
-											aria-owns={open ? 'mouse-over-popover' : undefined}
-											onClick={() =>
-											{
-												if (emotionAnalysisState === 'active')
-													roomClient.emotionStopAnalysis(me.id);
-												else
-													roomClient.emotionStartAnalysis(me.id);
-											}}
-										>
-											{ emotionAnalysisState === 'active' ?
-												<CancelIcon />
-												:
-												<EmojiEmotionsIcon />
-											}
-										</Fab>
-										{ emotionAnalysisState === 'active' &&
-										<Popover
-											id='mouse-over-popover'
-											open={open}
-											className={classesPopover.popover}
-											disableRestoreFocus
-											anchorEl={anchorEl}
-											classes={{
-												paper : classesPopover.paper
-											}}
-											onClose={emotionPopupClose}
-											anchorOrigin={{
-												vertical   : 'top',
-												horizontal : 'right'
-											}}
-											transformOrigin={{
-												vertical   : 'bottom',
-												horizontal : 'right'
-											}}
-										>
-											<EmotionPopoverContent
-												width={240}
-												height={120}
-												peerId={me.id}
-											/>
-										</Popover>
-										}
+										<EmotionFab
+											hasEmotionPermission={hasEmotionPermission}
+											emotionAnalysisState={emotionAnalysisState}
+											roomClient={roomClient}
+											peerId={me.id}
+											controls={controls}
+											classnames={classnames}
+											classesPopover={classesPopover}
+										/>
 									</div>
 								</Tooltip>
 								{/* /EMOTION ANALYSIS */}
