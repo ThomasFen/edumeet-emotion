@@ -13,12 +13,8 @@ import SignalCellular3BarIcon from '@material-ui/icons/SignalCellular3Bar';
 import { AudioAnalyzer } from './AudioAnalyzer';
 import EmotionBoxes from '../emotion/EmotionBoxes';
 import EmotionHistoryChart from '../emotion/EmotionHistoryChart';
-import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
-import * as faceMesh from '@mediapipe/face_mesh';
-import { config } from '../../config';
-import '@tensorflow/tfjs-core';
-// Register WebGL backend.
-import '@tensorflow/tfjs-backend-webgl';
+import EmotionMenu from '../emotion/EmotionMenu';
+import { setFaceDetectionRef } from '../emotion/FaceDetection';
 
 const logger = new Logger('VideoView');
 
@@ -209,14 +205,7 @@ class VideoView extends React.PureComponent
 		// Audio Analyzer
 		this.audioAnalyzerContainer = React.createRef();
 
-		// Periodic timer for face detection.
-		this._faceDetectionTimer = null;
-
-		this._detector = null;
-
 		this.videoRef = React.createRef();
-
-		this._sendFps = 1000 / config.faceDetectionTargetFps;
 
 	}
 
@@ -494,19 +483,27 @@ class VideoView extends React.PureComponent
 					controls={false}
 				/>
 
-				{hasEmotionPermission &&
-					<EmotionBoxes peerId={peer.id}
-						mirror={isMirrored && isMe}
-					/>
-				}
-
 				{
-					hasEmotionPermission && videoClientHeight && !advancedMode &&
-					<div style={{ position: 'absolute', zIndex: 20, marginLeft: 10 }}>
-						<EmotionHistoryChart width={(videoClientHeight * 0.7)}
-							height={videoClientHeight - 15} peerId={peer.id}
-						/>
-					</div>
+					hasEmotionPermission && (
+						<>
+							<EmotionBoxes
+								peerId={peer.id}
+								mirror={isMirrored && isMe}
+							/>
+							<EmotionMenu style={{ position: 'absolute', zIndex: 20, marginLeft: 10 }} />
+							{
+								videoClientHeight && !advancedMode && (
+									<div style={{ position: 'absolute', zIndex: 20, marginLeft: 10 }}>
+										<EmotionHistoryChart
+											width={videoClientHeight * 0.7}
+											height={videoClientHeight - 15}
+											peerId={peer.id}
+										/>
+									</div>
+								)
+							}
+						</>
+					)
 				}
 
 				{children}
@@ -514,99 +511,12 @@ class VideoView extends React.PureComponent
 		);
 	}
 
-	_extractFace(videoRef, prediction, cb)
-	{
-		const video = videoRef.current;
-
-		if (!video)
-		{
-			logger.error('No video element found. Cannot extract face.');
-
-			return;
-		}
-
-		logger.debug('Extracting face from video element');
-
-		const { xMin, yMin, xMax, yMax, width, height } = prediction.box;
-		const canvas = document.createElement('canvas');
-		const { videoWidth, videoHeight } = video;
-
-		canvas.width = width;
-		canvas.height = height;
-
-		const ctx = canvas.getContext('2d');
-
-		ctx.drawImage(video, xMin, yMin, width, height, 0, 0, width, height);
-
-		canvas.toBlob((blob) =>
-		{
-			if (blob)
-			{
-				const relativeBox = [ yMin / videoHeight, xMin / videoWidth,
-					yMax / videoHeight, xMax / videoWidth ];
-
-				cb({ buffer: blob, relativeBox });
-			}
-
-		}, 'image/jpeg', 1);
-
-	}
-
-	async _getDetector()
-	{
-		if (this._detector)
-			return this._detector;
-
-		const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-		const detectorConfig = {
-			runtime      : 'mediapipe', // or 'tfjs'
-			solutionPath : `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${faceMesh.VERSION}`
-		};
-
-		this._detector = await faceLandmarksDetection.createDetector(model,
-			detectorConfig);
-
-		return this._detector;
-	}
-
-	async _runDetection(onFace, videoRef)
-	{
-		const detector = await this._getDetector();
-
-		logger.debug('detector:', detector);
-
-		if (!detector)
-		{
-			logger.error('Failed to create face detector.');
-
-			return;
-		}
-		this._faceDetectionTimer = setInterval(async () =>
-		{
-			const video = videoRef.current;
-
-			if (video)
-			{
-				logger.debug('Running face detection');
-
-				const predictions = await detector.estimateFaces(video);
-
-				predictions.forEach((prediction) =>
-				{
-					this._extractFace(videoRef, prediction, onFace);
-				});
-			}
-			else
-			{
-				clearInterval(this._faceDetectionTimer);
-				logger.error('No video element found. Cannot run face detection.');
-			}
-		}, this._sendFps);
-	}
-
 	componentDidMount()
 	{
-		const { videoTrack, audioTrack, showAudioAnalyzer } = this.props;
+		const { videoTrack, audioTrack, showAudioAnalyzer, isMe } = this.props;
+
+		if (isMe)
+			setFaceDetectionRef(this.videoRef);
 
 		this._setTracks(videoTrack);
 
@@ -624,9 +534,12 @@ class VideoView extends React.PureComponent
 
 	componentWillUnmount()
 	{
-		clearInterval(this._videoResolutionTimer);
+		const { isMe } = this.props;
 
-		clearInterval(this._faceDetectionTimer);
+		if (isMe)
+			setFaceDetectionRef(null);
+
+		clearInterval(this._videoResolutionTimer);
 
 		const videoElement = this.videoRef.current;
 
@@ -644,11 +557,11 @@ class VideoView extends React.PureComponent
 		}
 	}
 
-	componentDidUpdate(prevProps)
+	async componentDidUpdate(prevProps)
 	{
 		if (prevProps !== this.props)
 		{
-			const { videoTrack, audioTrack, showAudioAnalyzer, isFaceDetecting, isMe }
+			const { videoTrack, audioTrack, showAudioAnalyzer }
 				= this.props;
 
 			this._setTracks(videoTrack);
@@ -661,19 +574,6 @@ class VideoView extends React.PureComponent
 			{
 				this.audioAnalyzer.delete();
 				this.audioAnalyzer = null;
-			}
-			if (isMe && (prevProps.isFaceDetecting !== isFaceDetecting))
-			{
-				if (isFaceDetecting)
-				{
-					logger.debug('Starting face detection intervall');
-					this._runDetection(this.props.onFace, this.videoRef);
-				}
-				else
-				{
-					logger.debug('Stopping face detection intervall');
-					clearInterval(this._faceDetectionTimer);
-				}
 			}
 		}
 	}
@@ -779,7 +679,6 @@ VideoView.propTypes =
 	isScreen                       : PropTypes.bool,
 	isExtraVideo                   : PropTypes.bool,
 	showQuality                    : PropTypes.bool,
-	isFaceDetecting                : PropTypes.bool,
 	hasEmotionPermission           : PropTypes.bool,
 	showAudioAnalyzer              : PropTypes.bool,
 	displayName                    : PropTypes.string,
@@ -791,7 +690,6 @@ VideoView.propTypes =
 	audioTrack                     : PropTypes.any,
 	consumerSpatialLayers          : PropTypes.number,
 	consumerTemporalLayers         : PropTypes.number,
-	onFace                         : PropTypes.func,
 	consumerCurrentSpatialLayer    : PropTypes.number,
 	consumerCurrentTemporalLayer   : PropTypes.number,
 	consumerPreferredSpatialLayer  : PropTypes.number,

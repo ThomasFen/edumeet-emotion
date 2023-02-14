@@ -2,7 +2,7 @@ import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
 	RESTART_EMOTION,
-	SET_FACE_DETECTING,
+	TOGGLE_FACE_DETECTING_STATUS,
 	TOGGLE_ADVANCED_EMOTION_MODE
 } from '../../actionTypes';
 
@@ -136,10 +136,10 @@ const emotion = (state = initialState, action) =>
 			};
 		}
 
-		case SET_FACE_DETECTING: {
-			const { isFaceDetecting } = action.payload;
+		case TOGGLE_FACE_DETECTING_STATUS: {
+			const isFaceDetecting = !state.isFaceDetecting;
 
-			return { ...state, isFaceDetecting: isFaceDetecting };
+			return { ...state, isFaceDetecting };
 		}
 
 		case TOGGLE_ADVANCED_EMOTION_MODE:

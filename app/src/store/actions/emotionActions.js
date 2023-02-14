@@ -2,7 +2,7 @@ import {
 	ADD_EMOTION,
 	DELETE_EMOTION,
 	RESTART_EMOTION,
-	SET_FACE_DETECTING,
+	TOGGLE_FACE_DETECTING_STATUS,
 	TOGGLE_ADVANCED_EMOTION_MODE
 } from '../../actionTypes';
 
@@ -24,10 +24,9 @@ export const deleteEmotion = (peerId) =>
 		payload : { peerId }
 	});
 
-export const setFaceDetectionStatus = (isFaceDetecting) =>
+export const toggleFaceDetectionStatus = () =>
 	({
-		type    : SET_FACE_DETECTING,
-		payload : { isFaceDetecting }
+		type : TOGGLE_FACE_DETECTING_STATUS
 	});
 
 export const toggleAdvancedEmotionMode = () =>

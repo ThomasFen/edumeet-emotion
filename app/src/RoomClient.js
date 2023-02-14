@@ -24,6 +24,7 @@ import { createIntl } from 'react-intl';
 import * as recorderActions from './store/actions/recorderActions';
 import { directReceiverTransform, opusReceiverTransform } from './transforms/receiver';
 import { config } from './config';
+import { startFaceDetection, stopFaceDetection } from './components/emotion/FaceDetection';
 
 let createTorrent;
 
@@ -3771,15 +3772,16 @@ export default class RoomClient
 					}
 					case 'start-face-detection':
 					{
-						store.dispatch(
-							emotionActions.setFaceDetectionStatus(true));
+						const { faceDetectionTargetFps } = config;
+
+						startFaceDetection(this.sendFace.bind(this), faceDetectionTargetFps);
 
 						break;
 					}
 					case 'stop-face-detection':
 					{
-						store.dispatch(
-							emotionActions.setFaceDetectionStatus(false));
+
+						stopFaceDetection('Remote request');
 
 						break;
 					}

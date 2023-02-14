@@ -169,7 +169,6 @@ const Me = (props) =>
 		hasAudioPermission,
 		hasVideoPermission,
 		hasScreenPermission,
-		isFaceDetecting,
 		hasEmotionPermission,
 		transports,
 		noiseVolume,
@@ -880,12 +879,9 @@ const Me = (props) =>
 						localRecordingState={localRecordingState}
 						recordingConsents={recordingConsents}
 						isMe
-						isFaceDetecting={isFaceDetecting}
 						hasEmotionPermission={hasEmotionPermission}
 						isMirrored={settings.mirrorOwnVideo}
 						VideoView
-						onFace={(face) =>
-							roomClient.sendFace(face)}
 						advancedMode={advancedMode}
 						peer={me}
 						displayName={settings.displayName}
@@ -1096,7 +1092,6 @@ Me.propTypes =
 	settings              : PropTypes.object,
 	emotionAnalysisActive : PropTypes.bool,
 	activeSpeaker         : PropTypes.bool,
-	isFaceDetecting       : PropTypes.bool,
 	micProducer           : appPropTypes.Producer,
 	webcamProducer        : appPropTypes.Producer,
 	screenProducer        : appPropTypes.Producer,
@@ -1146,7 +1141,6 @@ const makeMapStateToProps = () =>
 			settings              : state.settings,
 			activeSpeaker         : state.me.id === state.room.activeSpeakerId,
 			emotionAnalysisActive : state.me.id in state.emotion.emotions,
-			isFaceDetecting       : state.emotion.isFaceDetecting,
 			hasAudioPermission    : canShareAudio(state),
 			hasVideoPermission    : canShareVideo(state),
 			hasScreenPermission   : canShareScreen(state),
@@ -1177,7 +1171,6 @@ export default withRoomContext(connect(
 				prev.producers === next.producers &&
 				prev.settings === next.settings &&
 				prev.emotion.emotions === next.emotion.emotions &&
-				prev.emotion.isFaceDetecting === next.emotion.isFaceDetecting &&
 				prev.transports === next.transports &&
 				prev.recorder.localRecordingState.status ===
 				next.recorder.localRecordingState.status &&

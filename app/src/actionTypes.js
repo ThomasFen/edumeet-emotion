@@ -77,10 +77,10 @@ export const STOP_EMOTION_RECOGNITION = 'STOP_EMOTION_RECOGNITION';
 * Redux action type dispatched in order to set whether local face detection is active.
 *
 * {
-*      type: SET_FACE_DETECTING
+*      type: TOGGLE_FACE_DETECTING_STATUS
 * }
 */
-export const SET_FACE_DETECTING = 'SET_FACE_DETECTING';
+export const TOGGLE_FACE_DETECTING_STATUS = 'TOGGLE_FACE_DETECTING_STATUS';
 
 /**
 * Redux action type dispatched to allow user finer grained emotion analysis options.

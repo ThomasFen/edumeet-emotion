@@ -1,3 +1,9 @@
+# Commands to use wasm backend for face detection
+```
+cp node_modules/\@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm public/ &&
+cp node_modules/\@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm public/ &&
+cp node_modules/\@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm public/
+```
 # ![edumeet logo](/app/public/images/logo.edumeet.svg) **WebRTC meeting service using [mediasoup](https://mediasoup.org).**
 Official website: [edumeet.org](https://edumeet.org)
 
